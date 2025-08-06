@@ -180,7 +180,7 @@ export function DocumentDropzone({ item, onUpdate }: DocumentDropzoneProps) {
       onDrop={handleDrop}
     >
       <input
-        ref={fileInputref}
+        ref={fileInputRef}
         type="file"
         multiple
         className="hidden"
