@@ -27,6 +27,7 @@ export function WindowFrame({ item, items, isLinking, isLinkingFrom, onUpdate, o
 
   const handleDragStart = (e: React.MouseEvent<HTMLDivElement>) => {
     if ((e.target as HTMLElement).closest('.window-control')) return;
+    e.stopPropagation(); // Prevent canvas panning
     setIsDragging(true);
     setDragStart({ x: e.clientX - item.position.x, y: e.clientY - item.position.y });
     onFocus(item.id);
@@ -111,7 +112,7 @@ export function WindowFrame({ item, items, isLinking, isLinkingFrom, onUpdate, o
 
   return (
     <div
-      className="absolute"
+      className="absolute window-frame"
       style={{
         left: item.position.x,
         top: item.position.y,

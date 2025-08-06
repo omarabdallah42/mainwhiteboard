@@ -120,11 +120,14 @@ export default function WhiteboardPage() {
   };
   
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (e.altKey) {
-      setIsPanning(true);
-      setPanStart({ x: e.clientX - panOffset.x, y: e.clientY - panOffset.y });
-      (e.currentTarget as HTMLElement).style.cursor = 'grabbing';
+    // Prevent panning when interacting with other elements
+    if ((e.target as HTMLElement).closest('.window-frame') || (e.target as HTMLElement).closest('aside')) {
+        return;
     }
+    
+    setIsPanning(true);
+    setPanStart({ x: e.clientX - panOffset.x, y: e.clientY - panOffset.y });
+    (e.currentTarget as HTMLElement).style.cursor = 'grabbing';
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
