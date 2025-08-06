@@ -36,7 +36,7 @@ const generateScriptFromContextFlow = ai.defineFlow(
     outputSchema: GenerateScriptFromContextOutputSchema,
   },
   async (input) => {
-    const webhookUrl = 'https://n8n.tabtix.com/webhook-test/33d16a65-ac59-4c8b-a2b7-0d676a0f5b26';
+    const webhookUrl = 'https://n8n.tabtix.com/webhook/33d16a65-ac59-4c8b-a2b7-0d676a0f5b26';
 
     try {
       const response = await fetch(webhookUrl, {
@@ -56,9 +56,8 @@ const generateScriptFromContextFlow = ai.defineFlow(
       
       const responseData = await response.json();
 
-      // Assuming the webhook returns a JSON object with a "script" field.
-      // If not, it will stringify the entire response.
-      const script = responseData.script || JSON.stringify(responseData);
+      // Check if the response has an "output" field, otherwise use the "script" field, or stringify the response as a fallback.
+      const script = responseData.output || responseData.script || JSON.stringify(responseData);
       
       return { script };
 
