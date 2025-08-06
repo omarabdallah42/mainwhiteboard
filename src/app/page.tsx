@@ -61,7 +61,11 @@ export default function WhiteboardPage() {
             newItem.content = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
             newItem.title = 'New Video';
         } else if (type === 'youtube' && itemContent) {
-            newItem.title = 'New Video';
+            if (itemContent.includes('playlist?list=')) {
+              newItem.title = 'New Playlist';
+            } else {
+              newItem.title = 'New Video';
+            }
         } else if (type === 'url' || type === 'social' || type === 'image' || type === 'tiktok' || type === 'instagram') {
             newItem.content = 'https://placehold.co/600x400.png';
             if (type === 'image') {
