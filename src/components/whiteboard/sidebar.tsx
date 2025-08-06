@@ -8,6 +8,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Youtube, FileText, Image as ImageIcon, Globe, MessageCircle } from 'lucide-react';
 import { AddLinksDialog } from './add-links-dialog';
 import { AddPlaylistDialog } from './add-playlist-dialog';
+import { AddTiktokProfileDialog } from './add-tiktok-profile-dialog';
 
 interface SidebarProps {
   onAddItem: (type: WindowType, content?: string | string[]) => void;
@@ -35,6 +36,7 @@ const sampleChannelUrl = 'https://www.youtube.com/channel/UC-lHJZR3Gqxm24_Vd_AJ5
 export function Sidebar({ onAddItem }: SidebarProps) {
   const [isAddLinksDialogOpen, setIsAddLinksDialogOpen] = React.useState(false);
   const [isAddPlaylistDialogOpen, setIsAddPlaylistDialogOpen] = React.useState(false);
+  const [isAddTiktokProfileDialogOpen, setisAddTiktokProfileDialogOpen] = React.useState(false);
   
   const toolButtons = [
      { type: 'doc', icon: FileText, tooltip: 'Document'},
@@ -48,6 +50,10 @@ export function Sidebar({ onAddItem }: SidebarProps) {
   
   const handleAddPlaylist = (link: string) => {
     onAddItem('youtube', link);
+  }
+
+  const handleAddTiktokProfile = (link: string) => {
+    onAddItem('tiktok', link);
   }
 
   return (
@@ -101,7 +107,7 @@ export function Sidebar({ onAddItem }: SidebarProps) {
                 <TooltipContent side="right">TikTok</TooltipContent>
               </Tooltip>
               <DropdownMenuContent side="right" align="center">
-                <DropdownMenuItem onSelect={() => onAddItem('tiktok', 'https://www.tiktok.com/@tiktok')}>
+                <DropdownMenuItem onSelect={() => setisAddTiktokProfileDialogOpen(true)}>
                   Tiktok profile
                 </DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => onAddItem('tiktok', 'https://www.tiktok.com/@tiktok/video/73183 TikTok')}>
@@ -140,6 +146,11 @@ export function Sidebar({ onAddItem }: SidebarProps) {
         isOpen={isAddPlaylistDialogOpen}
         onOpenChange={setIsAddPlaylistDialogOpen}
         onAddPlaylist={handleAddPlaylist}
+      />
+       <AddTiktokProfileDialog
+        isOpen={isAddTiktokProfileDialogOpen}
+        onOpenChange={setisAddTiktokProfileDialogOpen}
+        onAddProfile={handleAddTiktokProfile}
       />
     </TooltipProvider>
   );
