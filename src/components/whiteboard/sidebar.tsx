@@ -7,6 +7,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Youtube, FileText, Image as ImageIcon, Globe, MessageCircle } from 'lucide-react';
 import { AddLinksDialog } from './add-links-dialog';
+import { AddPlaylistDialog } from './add-playlist-dialog';
 
 interface SidebarProps {
   onAddItem: (type: WindowType, content?: string | string[]) => void;
@@ -28,12 +29,12 @@ const InstagramIcon = (props: React.SVGProps<SVGSVGElement>) => (
     </svg>
 );
 
-const samplePlaylistUrl = 'https://www.youtube.com/playlist?list=PLx0sYbCqOb8TBPRrnhORVot5b26l0jfk0';
 const sampleChannelUrl = 'https://www.youtube.com/channel/UC-lHJZR3Gqxm24_Vd_AJ5Yw';
 
 
 export function Sidebar({ onAddItem }: SidebarProps) {
   const [isAddLinksDialogOpen, setIsAddLinksDialogOpen] = React.useState(false);
+  const [isAddPlaylistDialogOpen, setIsAddPlaylistDialogOpen] = React.useState(false);
   
   const toolButtons = [
      { type: 'tiktok', icon: TikTokIcon, tooltip: 'TikTok', content: 'https://www.tiktok.com' },
@@ -46,6 +47,10 @@ export function Sidebar({ onAddItem }: SidebarProps) {
   const handleAddLinks = (links: string[]) => {
     onAddItem('youtube', links);
   };
+  
+  const handleAddPlaylist = (link: string) => {
+    onAddItem('youtube', link);
+  }
 
   return (
     <TooltipProvider>
@@ -74,7 +79,7 @@ export function Sidebar({ onAddItem }: SidebarProps) {
                 <TooltipContent side="right">YouTube</TooltipContent>
               </Tooltip>
               <DropdownMenuContent side="right" align="center">
-                <DropdownMenuItem onSelect={() => onAddItem('youtube', samplePlaylistUrl)}>
+                <DropdownMenuItem onSelect={() => setIsAddPlaylistDialogOpen(true)}>
                   Playlist
                 </DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => onAddItem('youtube', sampleChannelUrl)}>
@@ -102,6 +107,11 @@ export function Sidebar({ onAddItem }: SidebarProps) {
         isOpen={isAddLinksDialogOpen}
         onOpenChange={setIsAddLinksDialogOpen}
         onAddItems={handleAddLinks}
+      />
+      <AddPlaylistDialog 
+        isOpen={isAddPlaylistDialogOpen}
+        onOpenChange={setIsAddPlaylistDialogOpen}
+        onAddPlaylist={handleAddPlaylist}
       />
     </TooltipProvider>
   );
