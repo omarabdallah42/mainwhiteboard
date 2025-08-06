@@ -62,8 +62,8 @@ export function Sidebar({ onAddItem }: SidebarProps) {
     onAddItem('tiktok', link);
   }
   
-  const handleAddTiktokReel = (link: string) => {
-    onAddItem('tiktok', link);
+  const handleAddTiktokReel = (links: string[]) => {
+    onAddItem('tiktok', links);
   }
 
   const handleAddChannel = (link: string) => {

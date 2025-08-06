@@ -12,50 +12,71 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Plus, X } from 'lucide-react';
 
 interface AddTiktokReelDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  onAddReel: (link: string) => void;
+  onAddReel: (links: string[]) => void;
 }
 
 export function AddTiktokReelDialog({ isOpen, onOpenChange, onAddReel }: AddTiktokReelDialogProps) {
-  const [link, setLink] = React.useState<string>('');
+  const [links, setLinks] = React.useState<string[]>(['']);
+
+  const handleLinkChange = (index: number, value: string) => {
+    const newLinks = [...links];
+    newLinks[index] = value;
+    setLinks(newLinks);
+  };
+
+  const handleAddLinkInput = () => {
+    setLinks([...links, '']);
+  };
+
+  const handleRemoveLinkInput = (index: number) => {
+    const newLinks = links.filter((_, i) => i !== index);
+    setLinks(newLinks);
+  };
 
   const handleSubmit = () => {
-    if (link.trim() !== '') {
-      onAddReel(link);
+    const validLinks = links.filter(link => link.trim() !== '');
+    if (validLinks.length > 0) {
+      onAddReel(validLinks);
     }
     onOpenChange(false);
-    setLink(''); 
+    setLinks(['']); // Reset for next time
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Add TikTok Reel</DialogTitle>
+          <DialogTitle>Add TikTok Reels</DialogTitle>
           <DialogDescription>
-            Enter the URL of the TikTok reel you want to add to the whiteboard.
+            Enter one or more TikTok reel URLs. Each will be added as a new window.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="tiktok-reel-link" className="text-right">
-              Link
-            </Label>
-            <Input
-              id="tiktok-reel-link"
-              value={link}
-              onChange={(e) => setLink(e.target.value)}
-              className="col-span-3"
-              placeholder="https://www.tiktok.com/@user/video/..."
-            />
-          </div>
+        <div className="grid gap-4 py-4 max-h-96 overflow-y-auto">
+          {links.map((link, index) => (
+            <div key={index} className="flex items-center gap-2">
+              <Input
+                value={link}
+                onChange={(e) => handleLinkChange(index, e.target.value)}
+                placeholder="https://www.tiktok.com/@user/video/..."
+              />
+              {links.length > 1 && (
+                <Button variant="ghost" size="icon" onClick={() => handleRemoveLinkInput(index)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          ))}
+          <Button variant="outline" onClick={handleAddLinkInput} className="w-full">
+            <Plus className="mr-2 h-4 w-4" /> Add another link
+          </Button>
         </div>
         <DialogFooter>
-          <Button type="submit" onClick={handleSubmit}>Add Reel</Button>
+          <Button type="submit" onClick={handleSubmit}>Add Reels</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
