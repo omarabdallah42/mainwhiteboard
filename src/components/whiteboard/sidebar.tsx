@@ -7,7 +7,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Bot, Youtube, Link as LinkIcon, FileText, Image as ImageIcon, Globe, Mic, Folder, GitFork } from 'lucide-react';
 
 interface SidebarProps {
-  onAddItem: (type: WindowType) => void;
+  onAddItem: (type: WindowType, content?: string) => void;
 }
 
 const TikTokIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -37,24 +37,11 @@ const FacebookIcon = (props: React.SVGProps<SVGSVGElement>) => (
 
 
 export function Sidebar({ onAddItem }: SidebarProps) {
-
-  const tools = [
-    { type: 'ai', icon: Bot, tooltip: 'AI Assistant' },
-    { type: 'social', icon: 'group', tooltip: 'Social Media' },
-    { type: 'social', icon: FacebookIcon, tooltip: 'Facebook' , isSubItem: true},
-    { type: 'mic', icon: Mic, tooltip: 'Audio' },
-    { type: 'image', icon: ImageIcon, tooltip: 'Image' },
-    { type: 'doc', icon: TextIcon, tooltip: 'Text Note' },
-    { type: 'url', icon: Globe, tooltip: 'Website URL' },
-    { type: 'share', icon: GitFork, tooltip: 'Connect' },
-    { type: 'doc', icon: FileText, tooltip: 'Document' },
-    { type: 'folder', icon: Folder, tooltip: 'Folder' },
-  ];
   
   const socialButtons = [
-     { type: 'tiktok', icon: TikTokIcon, tooltip: 'TikTok' },
-     { type: 'youtube', icon: Youtube, tooltip: 'YouTube' },
-     { type: 'instagram', icon: InstagramIcon, tooltip: 'Instagram' },
+     { type: 'tiktok', icon: TikTokIcon, tooltip: 'TikTok', content: 'https://www.tiktok.com' },
+     { type: 'youtube', icon: Youtube, tooltip: 'YouTube', content: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' },
+     { type: 'instagram', icon: InstagramIcon, tooltip: 'Instagram', content: 'https://www.instagram.com' },
   ]
 
 
@@ -75,7 +62,7 @@ export function Sidebar({ onAddItem }: SidebarProps) {
                 {socialButtons.map(tool => (
                      <Tooltip key={tool.tooltip}>
                         <TooltipTrigger asChild>
-                            <Button variant="ghost" size="icon" className="rounded-md" onClick={() => onAddItem(tool.type as WindowType)}>
+                            <Button variant="ghost" size="icon" className="rounded-md" onClick={() => onAddItem(tool.type as WindowType, tool.content)}>
                                 <tool.icon className="h-5 w-5" />
                             </Button>
                         </TooltipTrigger>
@@ -94,7 +81,7 @@ export function Sidebar({ onAddItem }: SidebarProps) {
 
             <Tooltip>
                 <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" className="rounded-full" onClick={() => onAddItem('social')}>
+                    <Button variant="ghost" size="icon" className="rounded-full" onClick={() => onAddItem('social', 'https://www.facebook.com')}>
                         <FacebookIcon className="h-6 w-6" />
                     </Button>
                 </TooltipTrigger>
@@ -147,14 +134,6 @@ export function Sidebar({ onAddItem }: SidebarProps) {
                     </Button>
                 </TooltipTrigger>
                 <TooltipContent side="right">Document</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" className="rounded-full">
-                        <Folder className="h-6 w-6" />
-                    </Button>
-                </TooltipTrigger>
-                <TooltipContent side="right">Folder</TooltipContent>
             </Tooltip>
         </div>
       </aside>
