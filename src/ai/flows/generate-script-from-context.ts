@@ -51,21 +51,21 @@ const generateScriptFromContextFlow = ai.defineFlow(
       });
 
       if (!response.ok) {
-        throw new Error(`Webhook failed with status: ${response.status}`);
+        throw new Error(`Webhook failed with status: ${response.status} ${response.statusText}`);
       }
       
       const responseData = await response.json();
 
       // Assuming the webhook returns a JSON object with a "script" field.
-      // Adjust if your webhook's response structure is different.
+      // If not, it will stringify the entire response.
       const script = responseData.script || JSON.stringify(responseData);
       
       return { script };
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error calling webhook:", error);
       // Let the user know something went wrong.
-      return { script: "I'm sorry, I was unable to connect to the script generator. Please check the webhook configuration." };
+      return { script: `I'm sorry, I was unable to connect to the script generator. Please check the webhook configuration and n8n workflow.\n\nError: ${error.message}` };
     }
   }
 );
