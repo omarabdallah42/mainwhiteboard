@@ -9,6 +9,7 @@ import { Youtube, FileText, Image as ImageIcon, Globe, MessageCircle } from 'luc
 import { AddLinksDialog } from './add-links-dialog';
 import { AddPlaylistDialog } from './add-playlist-dialog';
 import { AddTiktokProfileDialog } from './add-tiktok-profile-dialog';
+import { AddChannelDialog } from './add-channel-dialog';
 
 interface SidebarProps {
   onAddItem: (type: WindowType, content?: string | string[]) => void;
@@ -30,13 +31,11 @@ const InstagramIcon = (props: React.SVGProps<SVGSVGElement>) => (
     </svg>
 );
 
-const sampleChannelUrl = 'https://www.youtube.com/channel/UC-lHJZR3Gqxm24_Vd_AJ5Yw';
-
-
 export function Sidebar({ onAddItem }: SidebarProps) {
   const [isAddLinksDialogOpen, setIsAddLinksDialogOpen] = React.useState(false);
   const [isAddPlaylistDialogOpen, setIsAddPlaylistDialogOpen] = React.useState(false);
   const [isAddTiktokProfileDialogOpen, setisAddTiktokProfileDialogOpen] = React.useState(false);
+  const [isAddChannelDialogOpen, setIsAddChannelDialogOpen] = React.useState(false);
   
   const toolButtons = [
      { type: 'doc', icon: FileText, tooltip: 'Document'},
@@ -54,6 +53,10 @@ export function Sidebar({ onAddItem }: SidebarProps) {
 
   const handleAddTiktokProfile = (link: string) => {
     onAddItem('tiktok', link);
+  }
+
+  const handleAddChannel = (link: string) => {
+    onAddItem('youtube', link);
   }
 
   return (
@@ -86,7 +89,7 @@ export function Sidebar({ onAddItem }: SidebarProps) {
                 <DropdownMenuItem onSelect={() => setIsAddPlaylistDialogOpen(true)}>
                   Playlist
                 </DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => onAddItem('youtube', sampleChannelUrl)}>
+                <DropdownMenuItem onSelect={() => setIsAddChannelDialogOpen(true)}>
                   Channel
                 </DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => setIsAddLinksDialogOpen(true)}>
@@ -151,6 +154,11 @@ export function Sidebar({ onAddItem }: SidebarProps) {
         isOpen={isAddTiktokProfileDialogOpen}
         onOpenChange={setisAddTiktokProfileDialogOpen}
         onAddProfile={handleAddTiktokProfile}
+      />
+      <AddChannelDialog
+        isOpen={isAddChannelDialogOpen}
+        onOpenChange={setIsAddChannelDialogOpen}
+        onAddChannel={handleAddChannel}
       />
     </TooltipProvider>
   );

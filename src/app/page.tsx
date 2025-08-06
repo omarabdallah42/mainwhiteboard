@@ -64,6 +64,8 @@ export default function WhiteboardPage() {
         } else if (type === 'youtube' && itemContent) {
             if (itemContent.includes('playlist?list=')) {
               newItem.title = 'New Playlist';
+            } else if (itemContent.includes('/channel/') || itemContent.includes('/c/') || itemContent.includes('/user/')) {
+              newItem.title = 'New Channel';
             } else {
               newItem.title = 'New Video';
             }
