@@ -119,14 +119,6 @@ export function Sidebar({ onAddItem }: SidebarProps) {
                 </TooltipTrigger>
                 <TooltipContent side="right">Website / URL</TooltipContent>
             </Tooltip>
-             <Tooltip>
-                <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" className="rounded-full">
-                        <GitFork className="h-6 w-6" />
-                    </Button>
-                </TooltipTrigger>
-                <TooltipContent side="right">Connect Windows</TooltipContent>
-            </Tooltip>
             <Tooltip>
                 <TooltipTrigger asChild>
                     <Button variant="ghost" size="icon" className="rounded-full" onClick={() => onAddItem('doc')}>
