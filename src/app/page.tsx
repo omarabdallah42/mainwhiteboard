@@ -4,11 +4,17 @@ import * as React from 'react';
 import type { WindowItem, WindowType } from '@/lib/types';
 import { WhiteboardCanvas } from '@/components/whiteboard/whiteboard-canvas';
 import { Sidebar } from '@/components/whiteboard/sidebar';
+import { Button } from '@/components/ui/button';
+import { ZoomIn, ZoomOut, Redo } from 'lucide-react';
 
 export default function WhiteboardPage() {
   const [items, setItems] = React.useState<WindowItem[]>([]);
   const [activeZIndex, setActiveZIndex] = React.useState(1);
   const [linking, setLinking] = React.useState<{ from: string } | null>(null);
+  const [scale, setScale] = React.useState(1);
+  const [panOffset, setPanOffset] = React.useState({ x: 0, y: 0 });
+  const [isPanning, setIsPanning] = React.useState(false);
+  const [panStart, setPanStart] = React.useState({ x: 0, y: 0 });
 
   const handleAddItem = (type: WindowType, content?: string) => {
     const newZIndex = activeZIndex + 1;
@@ -17,7 +23,10 @@ export default function WhiteboardPage() {
       type,
       title: `New ${type.charAt(0).toUpperCase() + type.slice(1)}`,
       content: content || '',
-      position: { x: Math.random() * 200 + 150, y: Math.random() * 200 + 150 },
+      position: { 
+        x: (Math.random() * 200 + 150 - panOffset.x) / scale,
+        y: (Math.random() * 200 + 150 - panOffset.y) / scale 
+      },
       size: { width: 480, height: 360 },
       isAttached: false,
       zIndex: newZIndex,
@@ -98,18 +107,72 @@ export default function WhiteboardPage() {
       setLinking(null);
     }
   };
+
+  const handleZoom = (direction: 'in' | 'out' | 'reset') => {
+    if (direction === 'in') {
+      setScale(s => Math.min(s + 0.1, 2));
+    } else if (direction === 'out') {
+      setScale(s => Math.max(s - 0.1, 0.2));
+    } else {
+      setScale(1);
+      setPanOffset({ x: 0, y: 0 });
+    }
+  };
+  
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (e.altKey) {
+      setIsPanning(true);
+      setPanStart({ x: e.clientX - panOffset.x, y: e.clientY - panOffset.y });
+      (e.currentTarget as HTMLElement).style.cursor = 'grabbing';
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isPanning) {
+      setPanOffset({
+        x: e.clientX - panStart.x,
+        y: e.clientY - panStart.y,
+      });
+    }
+  };
+
+  const handleMouseUp = (e: React.MouseEvent) => {
+    if (isPanning) {
+      setIsPanning(false);
+      (e.currentTarget as HTMLElement).style.cursor = 'default';
+    }
+  };
   
   return (
-    <div className="relative h-dvh w-full overflow-hidden antialiased">
+    <div 
+      className="relative h-dvh w-full overflow-hidden antialiased"
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
+    >
       <Sidebar onAddItem={handleAddItem} />
       <WhiteboardCanvas
         items={items}
         linking={linking}
+        scale={scale}
+        panOffset={panOffset}
         onUpdateItem={handleUpdateItem}
         onDeleteItem={handleDeleteItem}
         onFocusItem={handleFocusItem}
         onToggleConnection={handleToggleConnection}
       />
+      <div className="fixed bottom-4 right-4 z-50 flex items-center gap-2">
+        <Button variant="outline" size="icon" onClick={() => handleZoom('out')} className="bg-card shadow-lg">
+          <ZoomOut className="h-4 w-4" />
+        </Button>
+        <Button variant="outline" size="icon" onClick={() => handleZoom('reset')} className="bg-card shadow-lg w-auto px-3">
+          {Math.round(scale * 100)}%
+        </Button>
+        <Button variant="outline" size="icon" onClick={() => handleZoom('in')} className="bg-card shadow-lg">
+          <ZoomIn className="h-4 w-4" />
+        </Button>
+      </div>
     </div>
   );
 }
