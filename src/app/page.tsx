@@ -17,38 +17,47 @@ export default function WhiteboardPage() {
   const [isPanning, setIsPanning] = React.useState(false);
   const [panStart, setPanStart] = React.useState({ x: 0, y: 0 });
 
-  const handleAddItem = (type: WindowType, content?: string) => {
-    const newZIndex = activeZIndex + 1;
-    const newItem: WindowItem = {
-      id: crypto.randomUUID(),
-      type,
-      title: `New ${type.charAt(0).toUpperCase() + type.slice(1)}`,
-      content: content || '',
-      position: { 
-        x: (Math.random() * 200 + 150 - panOffset.x) / scale,
-        y: (Math.random() * 200 + 150 - panOffset.y) / scale 
-      },
-      size: { width: 480, height: 360 },
-      isAttached: false,
-      zIndex: newZIndex,
-      connections: [],
+  const handleAddItem = (type: WindowType, content?: string | string[]) => {
+    let newZIndex = activeZIndex;
+    
+    const createItem = (itemContent: string): WindowItem => {
+        newZIndex++;
+        const newItem: WindowItem = {
+          id: crypto.randomUUID(),
+          type,
+          title: `New ${type.charAt(0).toUpperCase() + type.slice(1)}`,
+          content: itemContent || '',
+          position: { 
+            x: (Math.random() * 200 + 150 - panOffset.x) / scale,
+            y: (Math.random() * 200 + 150 - panOffset.y) / scale 
+          },
+          size: { width: 480, height: 360 },
+          isAttached: false,
+          zIndex: newZIndex,
+          connections: [],
+        };
+
+        if (type === 'ai') {
+            newItem.title = "AI Assistant"
+            newItem.size = { width: 400, height: 550 };
+        } else if (type === 'doc') {
+            newItem.content = 'Start writing your document here...';
+        } else if (type === 'youtube' && !itemContent) {
+            newItem.content = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+        } else if (type === 'url' || type === 'social' || type === 'image' || type === 'tiktok' || type === 'instagram') {
+            newItem.content = 'https://placehold.co/600x400.png';
+            if (type === 'image') {
+              newItem.title = 'New Image';
+            }
+        }
+        return newItem;
     };
     
-    if (type === 'ai') {
-        newItem.title = "AI Assistant"
-        newItem.size = { width: 400, height: 550 };
-    } else if (type === 'doc') {
-        newItem.content = 'Start writing your document here...';
-    } else if (type === 'youtube') {
-        newItem.content = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
-    } else if (type === 'url' || type === 'social' || type === 'image' || type === 'tiktok' || type === 'instagram') {
-        newItem.content = 'https://placehold.co/600x400.png';
-        if (type === 'image') {
-          newItem.title = 'New Image';
-        }
-    }
+    const newItems = Array.isArray(content) 
+        ? content.map(c => createItem(c))
+        : [createItem(content || '')];
 
-    setItems((prev) => [...prev, newItem]);
+    setItems((prev) => [...prev, ...newItems]);
     setActiveZIndex(newZIndex);
   };
 

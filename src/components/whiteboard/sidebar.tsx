@@ -6,9 +6,10 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Youtube, FileText, Image as ImageIcon, Globe, MessageCircle } from 'lucide-react';
+import { AddLinksDialog } from './add-links-dialog';
 
 interface SidebarProps {
-  onAddItem: (type: WindowType, content?: string) => void;
+  onAddItem: (type: WindowType, content?: string | string[]) => void;
 }
 
 const TikTokIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -28,15 +29,19 @@ const InstagramIcon = (props: React.SVGProps<SVGSVGElement>) => (
 );
 
 export function Sidebar({ onAddItem }: SidebarProps) {
+  const [isAddLinksDialogOpen, setIsAddLinksDialogOpen] = React.useState(false);
   
   const toolButtons = [
-     // YouTube is handled separately now
      { type: 'tiktok', icon: TikTokIcon, tooltip: 'TikTok', content: 'https://www.tiktok.com' },
      { type: 'instagram', icon: InstagramIcon, tooltip: 'Instagram', content: 'https://www.instagram.com' },
      { type: 'doc', icon: FileText, tooltip: 'Document'},
      { type: 'url', icon: Globe, tooltip: 'Website / URL', content: 'https://google.com'},
      { type: 'image', icon: ImageIcon, tooltip: 'Image'},
   ]
+
+  const handleAddLinks = (links: string[]) => {
+    onAddItem('youtube', links);
+  };
 
   return (
     <TooltipProvider>
@@ -65,7 +70,7 @@ export function Sidebar({ onAddItem }: SidebarProps) {
                 <TooltipContent side="right">YouTube</TooltipContent>
               </Tooltip>
               <DropdownMenuContent side="right" align="center">
-                <DropdownMenuItem onClick={() => onAddItem('youtube', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')}>
+                <DropdownMenuItem onSelect={() => setIsAddLinksDialogOpen(true)}>
                   Video Link
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => onAddItem('youtube', 'https://www.youtube.com/playlist?list=PLx0sYbCqOb8TBPRdmBHs5Iftvv9TPboYG')}>
@@ -89,6 +94,11 @@ export function Sidebar({ onAddItem }: SidebarProps) {
             ))}
         </div>
       </aside>
+      <AddLinksDialog 
+        isOpen={isAddLinksDialogOpen}
+        onOpenChange={setIsAddLinksDialogOpen}
+        onAddItems={handleAddLinks}
+      />
     </TooltipProvider>
   );
 }
