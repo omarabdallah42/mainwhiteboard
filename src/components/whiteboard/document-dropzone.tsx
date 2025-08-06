@@ -9,8 +9,12 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 // Dynamically import pdfjs-dist to avoid SSR issues
-const pdfjs = import('pdfjs-dist/build/pdf');
+const pdfjsPromise = import('pdfjs-dist/build/pdf');
 import mammoth from 'mammoth';
+
+pdfjsPromise.then(pdfjs => {
+    pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
+});
 
 interface DocumentDropzoneProps {
   item: WindowItem;
@@ -54,7 +58,8 @@ export function DocumentDropzone({ item, onUpdate }: DocumentDropzoneProps) {
       try {
         let textContent = '';
         if (file.type === 'application/pdf') {
-          const pdf = await (await pdfjs).getDocument(await file.arrayBuffer()).promise;
+          const pdfjs = await pdfjsPromise;
+          const pdf = await pdfjs.getDocument(await file.arrayBuffer()).promise;
           let content = '';
           for (let i = 1; i <= pdf.numPages; i++) {
             const page = await pdf.getPage(i);
