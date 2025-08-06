@@ -5,27 +5,53 @@ interface YoutubeEmbedProps {
 }
 
 export function YoutubeEmbed({ url }: YoutubeEmbedProps) {
-  const getYouTubeId = (url: string) => {
-    let ID = '';
-    const urlObj = new URL(url);
-    if (urlObj.hostname === 'youtu.be') {
-      ID = urlObj.pathname.slice(1);
-    } else if (urlObj.hostname === 'www.youtube.com' || urlObj.hostname === 'youtube.com') {
-      ID = urlObj.searchParams.get('v') || '';
+  const getYouTubeEmbedUrl = (url: string) => {
+    try {
+      const urlObj = new URL(url);
+      const hostname = urlObj.hostname;
+      const pathname = urlObj.pathname;
+      const searchParams = urlObj.searchParams;
+
+      if (hostname === 'youtu.be') {
+        const videoId = pathname.slice(1);
+        return `https://www.youtube.com/embed/${videoId}`;
+      }
+      
+      if (hostname === 'www.youtube.com' || hostname === 'youtube.com') {
+        if (pathname.startsWith('/embed/')) {
+          return url;
+        }
+        if (pathname.startsWith('/watch')) {
+          const videoId = searchParams.get('v');
+          if (videoId) return `https://www.youtube.com/embed/${videoId}`;
+        }
+        if (pathname.startsWith('/playlist')) {
+          const listId = searchParams.get('list');
+          if (listId) return `https://www.youtube.com/embed/videoseries?list=${listId}`;
+        }
+        if (pathname.startsWith('/user/') || pathname.startsWith('/c/') || pathname.startsWith('/channel/')) {
+           // This is a simple approximation. For custom user URLs, a lookup would be needed.
+           const channelPath = pathname.split('/')[2];
+           return `https://www.youtube.com/embed/videoseries?list=UU${channelPath.substring(2)}`;
+        }
+      }
+    } catch (error) {
+      console.error("Invalid URL:", error);
+      return null;
     }
-    return ID;
+    return null;
   };
 
-  const videoId = getYouTubeId(url);
+  const embedUrl = getYouTubeEmbedUrl(url);
 
-  if (!videoId) {
-    return <div className="p-4 text-destructive">Invalid YouTube URL</div>;
+  if (!embedUrl) {
+    return <div className="p-4 text-destructive">Invalid or unsupported YouTube URL</div>;
   }
 
   return (
     <iframe
       className="h-full w-full"
-      src={`https://www.youtube.com/embed/${videoId}`}
+      src={embedUrl}
       title="YouTube video player"
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
       allowFullScreen

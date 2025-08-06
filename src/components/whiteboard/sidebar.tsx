@@ -3,6 +3,7 @@
 import * as React from 'react';
 import type { WindowType } from '@/lib/types';
 import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Youtube, FileText, Image as ImageIcon, Globe, MessageCircle } from 'lucide-react';
 
@@ -29,7 +30,7 @@ const InstagramIcon = (props: React.SVGProps<SVGSVGElement>) => (
 export function Sidebar({ onAddItem }: SidebarProps) {
   
   const toolButtons = [
-     { type: 'youtube', icon: Youtube, tooltip: 'YouTube', content: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' },
+     // YouTube is handled separately now
      { type: 'tiktok', icon: TikTokIcon, tooltip: 'TikTok', content: 'https://www.tiktok.com' },
      { type: 'instagram', icon: InstagramIcon, tooltip: 'Instagram', content: 'https://www.instagram.com' },
      { type: 'doc', icon: FileText, tooltip: 'Document'},
@@ -51,6 +52,30 @@ export function Sidebar({ onAddItem }: SidebarProps) {
             </Tooltip>
             
             <div className="my-2 h-px w-8 bg-border" />
+
+            <DropdownMenu>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="rounded-full">
+                      <Youtube className="h-5 w-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                </TooltipTrigger>
+                <TooltipContent side="right">YouTube</TooltipContent>
+              </Tooltip>
+              <DropdownMenuContent side="right" align="center">
+                <DropdownMenuItem onClick={() => onAddItem('youtube', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')}>
+                  Video Link
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onAddItem('youtube', 'https://www.youtube.com/playlist?list=PLx0sYbCqOb8TBPRdmBHs5Iftvv9TPboYG')}>
+                  Playlist
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onAddItem('youtube', 'https://www.youtube.com/user/google')}>
+                  Channel
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             
             {toolButtons.map(tool => (
                  <Tooltip key={tool.tooltip}>
