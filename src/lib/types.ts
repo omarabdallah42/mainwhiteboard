@@ -9,4 +9,5 @@ export type WindowItem = {
   size: { width: number; height: number };
   isAttached: boolean;
   zIndex: number;
+  connections: { from: string, to: string }[];
 };

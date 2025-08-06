@@ -8,17 +8,20 @@ import { Input } from '@/components/ui/input';
 import { YoutubeEmbed } from './youtube-embed';
 import { X, GripVertical, Image as ImageIcon } from 'lucide-react';
 import { AiChatWindow } from './ai-chat-window';
+import { cn } from '@/lib/utils';
 
 interface WindowFrameProps {
   item: WindowItem;
   items: WindowItem[];
+  isLinking: boolean;
+  isLinkingFrom: boolean;
   onUpdate: (item: WindowItem) => void;
   onDelete: (id: string) => void;
   onFocus: (id: string) => void;
-  onToggleAttachment: (id: string) => void;
+  onToggleConnection: (id: string) => void;
 }
 
-export function WindowFrame({ item, items, onUpdate, onDelete, onFocus }: WindowFrameProps) {
+export function WindowFrame({ item, items, isLinking, isLinkingFrom, onUpdate, onDelete, onFocus, onToggleConnection }: WindowFrameProps) {
   const [isDragging, setIsDragging] = React.useState(false);
   const [dragStart, setDragStart] = React.useState({ x: 0, y: 0 });
 
@@ -85,6 +88,27 @@ export function WindowFrame({ item, items, onUpdate, onDelete, onFocus }: Window
     }
   };
 
+  const ConnectionHandle = ({ side }: { side: 'left' | 'right' }) => {
+    const isConnected = side === 'left' ? 
+      items.some(i => i.connections.some(c => c.to === item.id)) :
+      item.connections.length > 0;
+      
+    return (
+      <div 
+        className={cn(
+          "absolute top-1/2 -translate-y-1/2 h-4 w-4 rounded-full border-2 bg-background cursor-pointer hover:bg-primary hover:border-primary-foreground window-control",
+          side === 'left' ? "-left-2" : "-right-2",
+          (isLinking || isConnected) ? "border-primary" : "border-muted-foreground/50",
+          isLinkingFrom && side === 'right' && "bg-primary animate-pulse"
+        )}
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggleConnection(item.id);
+        }}
+      />
+    );
+  };
+
   return (
     <div
       className="absolute"
@@ -126,6 +150,8 @@ export function WindowFrame({ item, items, onUpdate, onDelete, onFocus }: Window
           {renderContent()}
         </CardContent>
       </Card>
+      <ConnectionHandle side="left" />
+      <ConnectionHandle side="right" />
     </div>
   );
 }

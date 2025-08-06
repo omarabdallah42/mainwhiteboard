@@ -8,6 +8,7 @@ import { Sidebar } from '@/components/whiteboard/sidebar';
 export default function WhiteboardPage() {
   const [items, setItems] = React.useState<WindowItem[]>([]);
   const [activeZIndex, setActiveZIndex] = React.useState(1);
+  const [linking, setLinking] = React.useState<{ from: string } | null>(null);
 
   const handleAddItem = (type: WindowType, content?: string) => {
     const newItem: WindowItem = {
@@ -19,6 +20,7 @@ export default function WhiteboardPage() {
       size: { width: 480, height: 360 },
       isAttached: false,
       zIndex: activeZIndex + 1,
+      connections: [],
     };
     
     if (type === 'ai') {
@@ -34,7 +36,6 @@ export default function WhiteboardPage() {
           newItem.title = 'New Image';
         }
     }
-
 
     setItems((prev) => [...prev, newItem]);
     setActiveZIndex((prev) => prev + 2);
@@ -60,16 +61,46 @@ export default function WhiteboardPage() {
       setActiveZIndex(newZIndex);
     }
   };
+
+  const handleToggleConnection = (id: string) => {
+    if (!linking) {
+      setLinking({ from: id });
+    } else {
+      if (linking.from === id) {
+        setLinking(null);
+      } else {
+        const fromItem = items.find(item => item.id === linking.from);
+        if (fromItem) {
+          const newConnection = { from: linking.from, to: id };
+          const isAlreadyConnected = fromItem.connections.some(c => c.from === newConnection.from && c.to === newConnection.to);
+          
+          if (isAlreadyConnected) {
+             handleUpdateItem({
+                ...fromItem,
+                connections: fromItem.connections.filter(c => !(c.from === newConnection.from && c.to === newConnection.to))
+            });
+          } else {
+             handleUpdateItem({
+                ...fromItem,
+                connections: [...fromItem.connections, newConnection]
+            });
+          }
+        }
+        setLinking(null);
+      }
+    }
+  };
   
   return (
     <div className="relative h-dvh w-full overflow-hidden antialiased">
       <Sidebar onAddItem={handleAddItem} />
       <WhiteboardCanvas
         items={items}
+        linking={linking}
         onUpdateItem={handleUpdateItem}
         onDeleteItem={handleDeleteItem}
         onFocusItem={handleFocusItem}
-        onToggleAttachment={() => {}}
+        onToggleConnection={handleToggleConnection}
       />
     </div>
   );
