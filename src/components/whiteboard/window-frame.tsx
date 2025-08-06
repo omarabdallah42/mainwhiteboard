@@ -79,7 +79,7 @@ export function WindowFrame({ item, items, onUpdate, onDelete, onFocus, onToggle
           />
         );
       case 'ai':
-        return <AiChatWindow items={items} />;
+        return <AiChatWindow />;
       default:
         return <div>Unsupported content type</div>;
     }
