@@ -24,9 +24,11 @@ interface WindowFrameProps {
 export function WindowFrame({ item, items, isLinking, isLinkingFrom, onUpdate, onDelete, onFocus, onToggleConnection }: WindowFrameProps) {
   const [isDragging, setIsDragging] = React.useState(false);
   const [dragStart, setDragStart] = React.useState({ x: 0, y: 0 });
+  const [isResizing, setIsResizing] = React.useState(false);
+  const [resizeStart, setResizeStart] = React.useState({ x: 0, y: 0, width: 0, height: 0 });
 
   const handleDragStart = (e: React.MouseEvent<HTMLDivElement>) => {
-    if ((e.target as HTMLElement).closest('.window-control')) return;
+    if ((e.target as HTMLElement).closest('.window-control') || (e.target as HTMLElement).closest('.resize-handle')) return;
     // Prevent canvas panning when starting a drag on a window
     e.stopPropagation();
     
@@ -61,9 +63,36 @@ export function WindowFrame({ item, items, isLinking, isLinkingFrom, onUpdate, o
     document.body.style.cursor = '';
   }, []);
 
+  const handleResizeStart = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    setIsResizing(true);
+    setResizeStart({ x: e.clientX, y: e.clientY, width: item.size.width, height: item.size.height });
+    onFocus(item.id);
+
+    document.body.style.userSelect = 'none';
+    document.body.style.cursor = 'nwse-resize';
+  }
+
+  const handleResize = React.useCallback(
+    (e: MouseEvent) => {
+      if (!isResizing) return;
+      const newWidth = resizeStart.width + (e.clientX - resizeStart.x);
+      const newHeight = resizeStart.height + (e.clientY - resizeStart.y);
+      onUpdate({
+        ...item,
+        size: { width: Math.max(newWidth, 300), height: Math.max(newHeight, 200) },
+      });
+    },
+    [isResizing, resizeStart, item, onUpdate]
+  );
+
+  const handleResizeEnd = React.useCallback(() => {
+    setIsResizing(false);
+    document.body.style.userSelect = '';
+    document.body.style.cursor = '';
+  }, []);
+
   React.useEffect(() => {
-    // We add and remove listeners on the document to capture mouse movement
-    // anywhere on the page, not just within the component.
     if (isDragging) {
       document.addEventListener('mousemove', handleDrag);
       document.addEventListener('mouseup', handleDragEnd);
@@ -71,13 +100,25 @@ export function WindowFrame({ item, items, isLinking, isLinkingFrom, onUpdate, o
       document.removeEventListener('mousemove', handleDrag);
       document.removeEventListener('mouseup', handleDragEnd);
     }
-
-    // Cleanup function to remove listeners when the component unmounts
     return () => {
       document.removeEventListener('mousemove', handleDrag);
       document.removeEventListener('mouseup', handleDragEnd);
     };
   }, [isDragging, handleDrag, handleDragEnd]);
+
+  React.useEffect(() => {
+    if (isResizing) {
+      document.addEventListener('mousemove', handleResize);
+      document.addEventListener('mouseup', handleResizeEnd);
+    } else {
+      document.removeEventListener('mousemove', handleResize);
+      document.removeEventListener('mouseup', handleResizeEnd);
+    }
+    return () => {
+      document.removeEventListener('mousemove', handleResize);
+      document.removeEventListener('mouseup', handleResizeEnd);
+    };
+  }, [isResizing, handleResize, handleResizeEnd]);
 
 
   const renderContent = () => {
@@ -140,7 +181,7 @@ export function WindowFrame({ item, items, isLinking, isLinkingFrom, onUpdate, o
       }}
       onMouseDown={() => onFocus(item.id)}
     >
-      <Card className="flex h-full w-full flex-col shadow-2xl transition-all duration-300 hover:shadow-primary/30">
+      <Card className="flex h-full w-full flex-col shadow-2xl transition-all duration-300 hover:shadow-primary/30 overflow-hidden relative">
         <CardHeader
           className="flex cursor-grab flex-row items-center justify-between p-2 active:cursor-grabbing"
           onMouseDown={handleDragStart}
@@ -168,6 +209,10 @@ export function WindowFrame({ item, items, isLinking, isLinkingFrom, onUpdate, o
         <CardContent className="flex-grow p-0">
           {renderContent()}
         </CardContent>
+         <div 
+          className="resize-handle absolute bottom-0 right-0 h-4 w-4 cursor-nwse-resize"
+          onMouseDown={handleResizeStart}
+        />
       </Card>
       <ConnectionHandle side="left" />
       <ConnectionHandle side="right" />
