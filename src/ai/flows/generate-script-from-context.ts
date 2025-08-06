@@ -15,6 +15,7 @@ const GenerateScriptFromContextInputSchema = z.object({
   prompt: z.string().describe("The user's request."),
   context: z
     .string()
+    .optional()
     .describe("The content of the open windows on the whiteboard."),
 });
 export type GenerateScriptFromContextInput = z.infer<typeof GenerateScriptFromContextInputSchema>;
@@ -45,7 +46,7 @@ const generateScriptFromContextFlow = ai.defineFlow(
         },
         body: JSON.stringify({
           prompt: input.prompt,
-          context: input.context,
+          context: input.context || '', // Ensure context is at least an empty string
         }),
       });
 
