@@ -6,6 +6,7 @@ import { WhiteboardCanvas } from '@/components/whiteboard/whiteboard-canvas';
 import { Sidebar } from '@/components/whiteboard/sidebar';
 import { Button } from '@/components/ui/button';
 import { ZoomIn, ZoomOut, Redo } from 'lucide-react';
+import { ThemeToggle } from '@/components/whiteboard/theme-toggle';
 
 export default function WhiteboardPage() {
   const [items, setItems] = React.useState<WindowItem[]>([]);
@@ -40,7 +41,7 @@ export default function WhiteboardPage() {
         newItem.content = 'Start writing your document here...';
     } else if (type === 'youtube') {
         newItem.content = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
-    } else if (type === 'url' || type === 'social' || type === 'image') {
+    } else if (type === 'url' || type === 'social' || type === 'image' || type === 'tiktok' || type === 'instagram') {
         newItem.content = 'https://placehold.co/600x400.png';
         if (type === 'image') {
           newItem.title = 'New Image';
@@ -121,7 +122,7 @@ export default function WhiteboardPage() {
   
   const handleMouseDown = (e: React.MouseEvent) => {
     // Prevent panning when interacting with other elements
-    if ((e.target as HTMLElement).closest('.window-frame') || (e.target as HTMLElement).closest('aside')) {
+    if ((e.target as HTMLElement).closest('.window-frame') || (e.target as HTMLElement).closest('aside') || (e.target as HTMLElement).closest('.fixed')) {
         return;
     }
     
@@ -165,6 +166,9 @@ export default function WhiteboardPage() {
         onFocusItem={handleFocusItem}
         onToggleConnection={handleToggleConnection}
       />
+      <div className="fixed top-4 left-4 z-50">
+        <ThemeToggle />
+      </div>
       <div className="fixed bottom-4 right-4 z-50 flex items-center gap-2">
         <Button variant="outline" size="icon" onClick={() => handleZoom('out')} className="bg-card shadow-lg">
           <ZoomOut className="h-4 w-4" />
