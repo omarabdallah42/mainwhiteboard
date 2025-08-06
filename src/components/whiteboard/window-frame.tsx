@@ -3,10 +3,9 @@ import * as React from 'react';
 import type { WindowItem } from '@/lib/types';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { YoutubeEmbed } from './youtube-embed';
-import { X, GripVertical, Link } from 'lucide-react';
+import { X, GripVertical } from 'lucide-react';
 import { AiChatWindow } from './ai-chat-window';
 import { cn } from '@/lib/utils';
 import { TiktokEmbed } from './tiktok-embed';
@@ -139,7 +138,7 @@ export function WindowFrame({ item, items, isLinking, isLinkingFrom, onUpdate, o
       case 'doc':
         return <DocumentDropzone item={item} onUpdate={onUpdate} />;
       case 'ai':
-        return <AiChatWindow />;
+        return <AiChatWindow item={item} items={items} />;
       default:
         return <div>Unsupported content type</div>;
     }

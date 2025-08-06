@@ -4,15 +4,21 @@ import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
-import { Bot, MessageCircle, Send, Sparkles } from 'lucide-react';
+import { Bot, MessageCircle, Send } from 'lucide-react';
 import { Textarea } from '../ui/textarea';
+import type { WindowItem } from '@/lib/types';
 
 type Message = {
   role: 'user' | 'ai';
   content: string;
 };
 
-export function AiChatWindow() {
+interface AiChatWindowProps {
+    item: WindowItem;
+    items: WindowItem[];
+}
+
+export function AiChatWindow({ item, items }: AiChatWindowProps) {
   const [messages, setMessages] = React.useState<Message[]>([]);
   const [input, setInput] = React.useState('');
   const [isLoading, setIsLoading] = React.useState(false);
@@ -37,10 +43,32 @@ export function AiChatWindow() {
     setInput('');
     setIsLoading(true);
 
-    // TODO: This is where you would call the webhook.
-    // For now, we'll simulate a delayed AI response.
+    // 1. Find connected windows and gather context
+    const connectedWindowIds = item.connections.map(conn => conn.to);
+    const connectedItems = items.filter(i => connectedWindowIds.includes(i.id));
+    
+    const context = connectedItems.map(i => {
+        let content = '';
+        if (i.type === 'doc') {
+            try {
+                const parsedDocs = JSON.parse(i.content);
+                if (Array.isArray(parsedDocs)) {
+                    content = parsedDocs.map((doc: {name: string, content: string}) => `Document: ${doc.name}\n${doc.content}`).join('\n\n');
+                }
+            } catch {
+                // Not JSON
+                content = i.content;
+            }
+        } else {
+           content = i.content;
+        }
+        return `## ${i.title} (${i.type})\n${content}`;
+    }).join('\n\n---\n\n');
+
+    // TODO: This is where you would call the webhook/Genkit flow.
+    // For now, we'll simulate a delayed AI response showing the context.
     setTimeout(() => {
-      const aiResponse: Message = { role: 'ai', content: `This is a simulated response to: "${newUserMessage.content}"` };
+      const aiResponse: Message = { role: 'ai', content: `This is a simulated response.\n\n**Context gathered:**\n${context || "No windows attached."}` };
       setMessages((prev) => [...prev, aiResponse]);
       setIsLoading(false);
     }, 1500);
