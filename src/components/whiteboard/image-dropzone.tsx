@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 import { UploadCloud, Image as ImageIcon, Loader2, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface ImageDropzoneProps {
   item: WindowItem;
@@ -110,23 +110,15 @@ export function ImageDropzone({ item, onUpdate }: ImageDropzoneProps) {
   if (imageSrcs.length > 0) {
     return (
       <div className="flex h-full flex-col bg-muted/30">
-        <div className="flex-grow p-4 flex items-center justify-center relative">
-          <Carousel className="w-full h-full max-w-xs" opts={{loop: true}}>
-            <CarouselContent className="h-full">
-              {imageSrcs.map((src, index) => (
-                <CarouselItem key={index} className="flex items-center justify-center">
-                    <img src={src} alt={`Uploaded image ${index + 1}`} className="max-h-full max-w-full object-contain" data-ai-hint="gallery image" />
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            {imageSrcs.length > 1 && (
-                <>
-                    <CarouselPrevious className="absolute left-2" />
-                    <CarouselNext className="absolute right-2"/>
-                </>
-            )}
-          </Carousel>
-        </div>
+        <ScrollArea className="flex-grow p-4">
+          <div className="grid grid-cols-2 gap-4">
+            {imageSrcs.map((src, index) => (
+              <div key={index} className="aspect-square overflow-hidden rounded-md border bg-background shadow-sm">
+                <img src={src} alt={`Uploaded image ${index + 1}`} className="h-full w-full object-cover" data-ai-hint="gallery photo" />
+              </div>
+            ))}
+          </div>
+        </ScrollArea>
         <div className="border-t p-2 flex items-center justify-between">
            <Button variant="outline" size="sm" onClick={handleClearImages}>
              <Trash2 className="h-3 w-3 mr-1" />
