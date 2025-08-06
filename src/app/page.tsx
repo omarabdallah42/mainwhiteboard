@@ -11,6 +11,7 @@ export default function WhiteboardPage() {
   const [linking, setLinking] = React.useState<{ from: string } | null>(null);
 
   const handleAddItem = (type: WindowType, content?: string) => {
+    const newZIndex = activeZIndex + 1;
     const newItem: WindowItem = {
       id: crypto.randomUUID(),
       type,
@@ -19,7 +20,7 @@ export default function WhiteboardPage() {
       position: { x: Math.random() * 200 + 150, y: Math.random() * 200 + 150 },
       size: { width: 480, height: 360 },
       isAttached: false,
-      zIndex: activeZIndex + 1,
+      zIndex: newZIndex,
       connections: [],
     };
     
@@ -38,7 +39,7 @@ export default function WhiteboardPage() {
     }
 
     setItems((prev) => [...prev, newItem]);
-    setActiveZIndex((prev) => prev + 2);
+    setActiveZIndex(newZIndex);
   };
 
   const handleUpdateItem = (updatedItem: WindowItem) => {
@@ -68,26 +69,33 @@ export default function WhiteboardPage() {
     } else {
       if (linking.from === id) {
         setLinking(null);
-      } else {
-        const fromItem = items.find(item => item.id === linking.from);
-        if (fromItem) {
-          const newConnection = { from: linking.from, to: id };
-          const isAlreadyConnected = fromItem.connections.some(c => c.from === newConnection.from && c.to === newConnection.to);
-          
-          if (isAlreadyConnected) {
-             handleUpdateItem({
-                ...fromItem,
-                connections: fromItem.connections.filter(c => !(c.from === newConnection.from && c.to === newConnection.to))
-            });
-          } else {
-             handleUpdateItem({
-                ...fromItem,
-                connections: [...fromItem.connections, newConnection]
-            });
-          }
-        }
-        setLinking(null);
+        return;
       }
+      
+      const fromItem = items.find(item => item.id === linking!.from);
+      const toItem = items.find(item => item.id === id);
+
+      if (fromItem && toItem) {
+        const isAlreadyConnected = fromItem.connections.some(c => c.to === id);
+        
+        if (isAlreadyConnected) {
+          // Disconnect
+          const updatedFromItem = {
+            ...fromItem,
+            connections: fromItem.connections.filter(c => c.to !== id)
+          };
+          handleUpdateItem(updatedFromItem);
+        } else {
+          // Connect
+          const updatedFromItem = {
+            ...fromItem,
+            connections: [...fromItem.connections, { from: fromItem.id, to: id }]
+          };
+          handleUpdateItem(updatedFromItem);
+        }
+      }
+      
+      setLinking(null);
     }
   };
   
