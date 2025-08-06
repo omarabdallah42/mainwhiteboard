@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { YoutubeEmbed } from './youtube-embed';
-import { X, GripVertical, Image as ImageIcon } from 'lucide-react';
+import { X, GripVertical, Link } from 'lucide-react';
 import { AiChatWindow } from './ai-chat-window';
 import { cn } from '@/lib/utils';
 
@@ -27,14 +27,23 @@ export function WindowFrame({ item, items, isLinking, isLinkingFrom, onUpdate, o
 
   const handleDragStart = (e: React.MouseEvent<HTMLDivElement>) => {
     if ((e.target as HTMLElement).closest('.window-control')) return;
-    e.stopPropagation(); // Prevent canvas panning
+    // Prevent canvas panning when starting a drag on a window
+    e.stopPropagation();
+    
     setIsDragging(true);
+    // The main position state is in the parent, so we calculate the offset
+    // from the mouse position to the item's top-left corner.
     setDragStart({ x: e.clientX - item.position.x, y: e.clientY - item.position.y });
     onFocus(item.id);
+
+    // Disable text selection and change cursor while dragging
+    document.body.style.userSelect = 'none';
+    document.body.style.cursor = 'grabbing';
   };
 
   const handleDrag = React.useCallback(
     (e: MouseEvent) => {
+      // This check is important to only run the logic when dragging is active
       if (!isDragging) return;
       onUpdate({
         ...item,
@@ -46,9 +55,15 @@ export function WindowFrame({ item, items, isLinking, isLinkingFrom, onUpdate, o
 
   const handleDragEnd = React.useCallback(() => {
     setIsDragging(false);
+
+    // Re-enable text selection and reset cursor when dragging stops
+    document.body.style.userSelect = '';
+    document.body.style.cursor = '';
   }, []);
 
   React.useEffect(() => {
+    // We add and remove listeners on the document to capture mouse movement
+    // anywhere on the page, not just within the component.
     if (isDragging) {
       document.addEventListener('mousemove', handleDrag);
       document.addEventListener('mouseup', handleDragEnd);
@@ -56,11 +71,14 @@ export function WindowFrame({ item, items, isLinking, isLinkingFrom, onUpdate, o
       document.removeEventListener('mousemove', handleDrag);
       document.removeEventListener('mouseup', handleDragEnd);
     }
+
+    // Cleanup function to remove listeners when the component unmounts
     return () => {
       document.removeEventListener('mousemove', handleDrag);
       document.removeEventListener('mouseup', handleDragEnd);
     };
   }, [isDragging, handleDrag, handleDragEnd]);
+
 
   const renderContent = () => {
     switch (item.type) {
@@ -88,8 +106,8 @@ export function WindowFrame({ item, items, isLinking, isLinkingFrom, onUpdate, o
         return <div>Unsupported content type</div>;
     }
   };
-
-  const ConnectionHandle = ({ side }: { side: 'left' | 'right' }) => {
+  
+    const ConnectionHandle = ({ side }: { side: 'left' | 'right' }) => {
     const isConnected = side === 'left' ? 
       items.some(i => i.connections.some(c => c.to === item.id)) :
       item.connections.length > 0;
@@ -124,7 +142,7 @@ export function WindowFrame({ item, items, isLinking, isLinkingFrom, onUpdate, o
     >
       <Card className="flex h-full w-full flex-col shadow-2xl transition-all duration-300 hover:shadow-primary/30">
         <CardHeader
-          className="flex cursor-move flex-row items-center justify-between p-2"
+          className="flex cursor-grab flex-row items-center justify-between p-2 active:cursor-grabbing"
           onMouseDown={handleDragStart}
         >
           <div className="flex items-center gap-2">
