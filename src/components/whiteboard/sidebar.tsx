@@ -14,6 +14,7 @@ import { AddChannelDialog } from './add-channel-dialog';
 import { AddTiktokReelDialog } from './add-tiktok-reel-dialog';
 import { AddInstagramProfileDialog } from './add-instagram-profile-dialog';
 import { AddInstagramReelDialog } from './add-instagram-reel-dialog';
+import { AddWebsiteLinkDialog } from './add-website-link-dialog';
 
 interface SidebarProps {
   onAddItem: (type: WindowType, content?: string | string[]) => void;
@@ -43,10 +44,11 @@ export function Sidebar({ onAddItem }: SidebarProps) {
   const [isAddChannelDialogOpen, setIsAddChannelDialogOpen] = React.useState(false);
   const [isAddInstagramProfileDialogOpen, setIsAddInstagramProfileDialogOpen] = React.useState(false);
   const [isAddInstagramReelDialogOpen, setIsAddInstagramReelDialogOpen] = React.useState(false);
+  const [isAddWebsiteLinkDialogOpen, setIsAddWebsiteLinkDialogOpen] = React.useState(false);
   
   const toolButtons = [
      { type: 'doc', icon: FileText, tooltip: 'Document'},
-     { type: 'url', icon: Globe, tooltip: 'Website / URL', content: 'https://google.com'},
+     { type: 'url', icon: Globe, tooltip: 'Website / URL', action: () => setIsAddWebsiteLinkDialogOpen(true) },
      { type: 'image', icon: ImageIcon, tooltip: 'Image'},
   ]
 
@@ -76,6 +78,10 @@ export function Sidebar({ onAddItem }: SidebarProps) {
 
   const handleAddInstagramReel = (links: string[]) => {
     onAddItem('instagram', links);
+  }
+  
+  const handleAddWebsiteLink = (link: string) => {
+    onAddItem('url', link);
   }
 
   return (
@@ -162,7 +168,7 @@ export function Sidebar({ onAddItem }: SidebarProps) {
             {toolButtons.map(tool => (
                  <Tooltip key={tool.tooltip}>
                     <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" className="rounded-full" onClick={() => onAddItem(tool.type as WindowType, tool.content)}>
+                        <Button variant="ghost" size="icon" className="rounded-full" onClick={() => tool.action ? tool.action() : onAddItem(tool.type as WindowType, tool.content)}>
                             <tool.icon className="h-5 w-5" />
                         </Button>
                     </TooltipTrigger>
@@ -205,6 +211,11 @@ export function Sidebar({ onAddItem }: SidebarProps) {
         isOpen={isAddInstagramReelDialogOpen}
         onOpenChange={setIsAddInstagramReelDialogOpen}
         onAddReel={handleAddInstagramReel}
+      />
+      <AddWebsiteLinkDialog
+        isOpen={isAddWebsiteLinkDialogOpen}
+        onOpenChange={setIsAddWebsiteLinkDialogOpen}
+        onAddLink={handleAddWebsiteLink}
       />
     </TooltipProvider>
   );
