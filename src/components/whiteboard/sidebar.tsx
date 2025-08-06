@@ -74,8 +74,8 @@ export function Sidebar({ onAddItem }: SidebarProps) {
     onAddItem('instagram', link);
   }
 
-  const handleAddInstagramReel = (link: string) => {
-    onAddItem('instagram', link);
+  const handleAddInstagramReel = (links: string[]) => {
+    onAddItem('instagram', links);
   }
 
   return (
