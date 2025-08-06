@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Bot, MessageCircle, Send } from 'lucide-react';
 import { Textarea } from '../ui/textarea';
 import type { WindowItem } from '@/lib/types';
+import { generateScriptFromContext } from '@/ai/flows/generate-script-from-context';
 
 type Message = {
   role: 'user' | 'ai';
@@ -40,38 +41,51 @@ export function AiChatWindow({ item, items }: AiChatWindowProps) {
 
     const newUserMessage: Message = { role: 'user', content: input };
     setMessages((prev) => [...prev, newUserMessage]);
+    const currentInput = input;
     setInput('');
     setIsLoading(true);
 
-    // 1. Find connected windows and gather context
-    const connectedWindowIds = item.connections.map(conn => conn.to);
-    const connectedItems = items.filter(i => connectedWindowIds.includes(i.id));
-    
-    const context = connectedItems.map(i => {
-        let content = '';
-        if (i.type === 'doc') {
-            try {
-                const parsedDocs = JSON.parse(i.content);
-                if (Array.isArray(parsedDocs)) {
-                    content = parsedDocs.map((doc: {name: string, content: string}) => `Document: ${doc.name}\n${doc.content}`).join('\n\n');
+    try {
+        const connectedWindowIds = item.connections.map(conn => conn.to);
+        const connectedItems = items.filter(i => connectedWindowIds.includes(i.id));
+        
+        const context = connectedItems.map(i => {
+            let content = '';
+            if (i.type === 'doc') {
+                try {
+                    const parsedDocs = JSON.parse(i.content);
+                    if (Array.isArray(parsedDocs)) {
+                        content = parsedDocs.map((doc: {name: string, content: string}) => `Document: ${doc.name}\n${doc.content}`).join('\n\n');
+                    }
+                } catch {
+                    content = i.content;
                 }
-            } catch {
-                // Not JSON
-                content = i.content;
+            } else {
+               content = i.content;
             }
-        } else {
-           content = i.content;
-        }
-        return `## ${i.title} (${i.type})\n${content}`;
-    }).join('\n\n---\n\n');
+            return `## ${i.title} (${i.type})\n${content}`;
+        }).join('\n\n---\n\n');
+        
+        const result = await generateScriptFromContext({
+            prompt: currentInput,
+            context: context
+        });
 
-    // TODO: This is where you would call the webhook/Genkit flow.
-    // For now, we'll simulate a delayed AI response showing the context.
-    setTimeout(() => {
-      const aiResponse: Message = { role: 'ai', content: `This is a simulated response.\n\n**Context gathered:**\n${context || "No windows attached."}` };
-      setMessages((prev) => [...prev, aiResponse]);
-      setIsLoading(false);
-    }, 1500);
+        const aiResponse: Message = { role: 'ai', content: result.script };
+        setMessages((prev) => [...prev, aiResponse]);
+
+    } catch (error) {
+        console.error('Error generating script:', error);
+        toast({
+            variant: 'destructive',
+            title: 'An error occurred',
+            description: 'Failed to get a response from the AI. Please try again.',
+        });
+        const aiErrorResponse: Message = { role: 'ai', content: "Sorry, I couldn't process that request." };
+        setMessages((prev) => [...prev, aiErrorResponse]);
+    } finally {
+        setIsLoading(false);
+    }
   };
 
   return (

@@ -12,6 +12,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const GenerateScriptFromContextInputSchema = z.object({
+  prompt: z.string().describe("The user's request."),
   context: z
     .string()
     .describe("The content of the open windows on the whiteboard."),
@@ -27,45 +28,43 @@ export async function generateScriptFromContext(input: GenerateScriptFromContext
   return generateScriptFromContextFlow(input);
 }
 
-const prompt = ai.definePrompt({
-  name: 'generateScriptFromContextPrompt',
-  input: {schema: GenerateScriptFromContextInputSchema},
-  output: {schema: GenerateScriptFromContextOutputSchema},
-  prompt: `You are an AI assistant that generates scripts based on given context.
-
-  Context: {{{context}}}
-
-  Generate a script based on the context provided. The script should be well-structured and easy to follow.
-  `,config: {
-    safetySettings: [
-      {
-        category: 'HARM_CATEGORY_HATE_SPEECH',
-        threshold: 'BLOCK_ONLY_HIGH',
-      },
-      {
-        category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
-        threshold: 'BLOCK_NONE',
-      },
-      {
-        category: 'HARM_CATEGORY_HARASSMENT',
-        threshold: 'BLOCK_MEDIUM_AND_ABOVE',
-      },
-      {
-        category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
-        threshold: 'BLOCK_LOW_AND_ABOVE',
-      },
-    ],
-  },
-});
-
 const generateScriptFromContextFlow = ai.defineFlow(
   {
     name: 'generateScriptFromContextFlow',
     inputSchema: GenerateScriptFromContextInputSchema,
     outputSchema: GenerateScriptFromContextOutputSchema,
   },
-  async input => {
-    const {output} = await prompt(input);
-    return output!;
+  async (input) => {
+    const webhookUrl = 'https://n8n.tabtix.com/webhook-test/33d16a65-ac59-4c8b-a2b7-0d676a0f5b26';
+
+    try {
+      const response = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: input.prompt,
+          context: input.context,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Webhook failed with status: ${response.status}`);
+      }
+      
+      const responseData = await response.json();
+
+      // Assuming the webhook returns a JSON object with a "script" field.
+      // Adjust if your webhook's response structure is different.
+      const script = responseData.script || JSON.stringify(responseData);
+      
+      return { script };
+
+    } catch (error) {
+      console.error("Error calling webhook:", error);
+      // Let the user know something went wrong.
+      return { script: "I'm sorry, I was unable to connect to the script generator. Please check the webhook configuration." };
+    }
   }
 );
