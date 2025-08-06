@@ -18,6 +18,14 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      // Fix for pdfjs-dist
+      "canvas": false,
+    };
+    return config
+  }
 };
 
 export default nextConfig;

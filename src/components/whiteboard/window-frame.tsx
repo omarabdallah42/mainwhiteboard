@@ -10,6 +10,7 @@ import { X, GripVertical, Link } from 'lucide-react';
 import { AiChatWindow } from './ai-chat-window';
 import { cn } from '@/lib/utils';
 import { TiktokEmbed } from './tiktok-embed';
+import { DocumentDropzone } from './document-dropzone';
 
 interface WindowFrameProps {
   item: WindowItem;
@@ -135,14 +136,7 @@ export function WindowFrame({ item, items, isLinking, isLinkingFrom, onUpdate, o
       case 'image':
         return <img src={item.content} alt={item.title} className="h-full w-full object-cover" data-ai-hint="placeholder image" />;
       case 'doc':
-        return (
-          <Textarea
-            value={item.content}
-            onChange={(e) => onUpdate({ ...item, content: e.target.value })}
-            className="h-full w-full resize-none border-0 focus-visible:ring-0"
-            placeholder="Start writing..."
-          />
-        );
+        return <DocumentDropzone item={item} onUpdate={onUpdate} />;
       case 'ai':
         return <AiChatWindow />;
       default:

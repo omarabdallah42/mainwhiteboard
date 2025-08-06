@@ -57,7 +57,8 @@ export default function WhiteboardPage() {
             newItem.title = "AI Assistant"
             newItem.size = { width: 400, height: 550 };
         } else if (type === 'doc') {
-            newItem.content = 'Start writing your document here...';
+            newItem.content = '';
+            newItem.title = 'Document Upload'
         } else if (type === 'youtube' && !itemContent) {
             newItem.content = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
             newItem.title = 'New Video';
