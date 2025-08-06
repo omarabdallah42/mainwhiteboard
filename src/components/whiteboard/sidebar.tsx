@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -10,6 +11,7 @@ import { AddLinksDialog } from './add-links-dialog';
 import { AddPlaylistDialog } from './add-playlist-dialog';
 import { AddTiktokProfileDialog } from './add-tiktok-profile-dialog';
 import { AddChannelDialog } from './add-channel-dialog';
+import { AddTiktokReelDialog } from './add-tiktok-reel-dialog';
 
 interface SidebarProps {
   onAddItem: (type: WindowType, content?: string | string[]) => void;
@@ -35,6 +37,7 @@ export function Sidebar({ onAddItem }: SidebarProps) {
   const [isAddLinksDialogOpen, setIsAddLinksDialogOpen] = React.useState(false);
   const [isAddPlaylistDialogOpen, setIsAddPlaylistDialogOpen] = React.useState(false);
   const [isAddTiktokProfileDialogOpen, setisAddTiktokProfileDialogOpen] = React.useState(false);
+  const [isAddTiktokReelDialogOpen, setIsAddTiktokReelDialogOpen] = React.useState(false);
   const [isAddChannelDialogOpen, setIsAddChannelDialogOpen] = React.useState(false);
   
   const toolButtons = [
@@ -52,6 +55,10 @@ export function Sidebar({ onAddItem }: SidebarProps) {
   }
 
   const handleAddTiktokProfile = (link: string) => {
+    onAddItem('tiktok', link);
+  }
+  
+  const handleAddTiktokReel = (link: string) => {
     onAddItem('tiktok', link);
   }
 
@@ -113,7 +120,7 @@ export function Sidebar({ onAddItem }: SidebarProps) {
                 <DropdownMenuItem onSelect={() => setisAddTiktokProfileDialogOpen(true)}>
                   Tiktok profile
                 </DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => onAddItem('tiktok', 'https://www.tiktok.com/@tiktok/video/73183 TikTok')}>
+                <DropdownMenuItem onSelect={() => setIsAddTiktokReelDialogOpen(true)}>
                   Reel link
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -154,6 +161,11 @@ export function Sidebar({ onAddItem }: SidebarProps) {
         isOpen={isAddTiktokProfileDialogOpen}
         onOpenChange={setisAddTiktokProfileDialogOpen}
         onAddProfile={handleAddTiktokProfile}
+      />
+      <AddTiktokReelDialog
+        isOpen={isAddTiktokReelDialogOpen}
+        onOpenChange={setIsAddTiktokReelDialogOpen}
+        onAddReel={handleAddTiktokReel}
       />
       <AddChannelDialog
         isOpen={isAddChannelDialogOpen}
