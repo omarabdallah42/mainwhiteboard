@@ -28,6 +28,15 @@ const InstagramIcon = (props: React.SVGProps<SVGSVGElement>) => (
     </svg>
 );
 
+const samplePlaylistVideos = [
+  'https://www.youtube.com/watch?v=6_pru8U2R1Q', // How to Make $100k as a Creator
+  'https://www.youtube.com/watch?v=6mxHw2i0-p4', // regular guy explains how to become a creator
+  'https://www.youtube.com/watch?v=m2Q2NgoKe1E', // the dark truth about selling courses
+  'https://www.youtube.com/watch?v=I_gPqbLh_G4', // I Used ChatGPT to go VIRAL
+  'https://www.youtube.com/watch?v=3i5i7N_iL2Y', // I BLEW UP An Instagram Account...
+  'https://www.youtube.com/watch?v=fHR35_eG0y0', // This AI Writes Viral Videos in 10 minutes
+];
+
 export function Sidebar({ onAddItem }: SidebarProps) {
   const [isAddLinksDialogOpen, setIsAddLinksDialogOpen] = React.useState(false);
   
@@ -71,12 +80,12 @@ export function Sidebar({ onAddItem }: SidebarProps) {
               </Tooltip>
               <DropdownMenuContent side="right" align="center">
                 <DropdownMenuItem onSelect={() => setIsAddLinksDialogOpen(true)}>
-                  Video Link
+                  Video Link(s)
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onAddItem('youtube', 'https://www.youtube.com/playlist?list=PLx0sYbCqOb8TBPRdmBHs5Iftvv9TPboYG')}>
+                <DropdownMenuItem onClick={() => onAddItem('youtube', samplePlaylistVideos)}>
                   Playlist
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onAddItem('youtube', 'https://www.youtube.com/user/google')}>
+                <DropdownMenuItem onClick={() => onAddItem('youtube', samplePlaylistVideos)}>
                   Channel
                 </DropdownMenuItem>
               </DropdownMenuContent>

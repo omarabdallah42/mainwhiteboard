@@ -16,26 +16,41 @@ export default function WhiteboardPage() {
   const [panOffset, setPanOffset] = React.useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = React.useState(false);
   const [panStart, setPanStart] = React.useState({ x: 0, y: 0 });
+  
+  const lastGridPosition = React.useRef({ x: 150, y: 150 });
+  const GRID_GUTTER = 20;
+  const WINDOW_WIDTH = 480;
 
   const handleAddItem = (type: WindowType, content?: string | string[]) => {
     let newZIndex = activeZIndex;
     
     const createItem = (itemContent: string): WindowItem => {
         newZIndex++;
+        
+        const canvasWidth = window.innerWidth / scale;
+        if (lastGridPosition.current.x + WINDOW_WIDTH + GRID_GUTTER > (canvasWidth - panOffset.x) / scale) {
+            lastGridPosition.current.x = 150;
+            lastGridPosition.current.y += 360 + GRID_GUTTER;
+        }
+
+        const position = {
+            x: (lastGridPosition.current.x - panOffset.x) / scale,
+            y: (lastGridPosition.current.y - panOffset.y) / scale,
+        };
+
         const newItem: WindowItem = {
           id: crypto.randomUUID(),
           type,
           title: `New ${type.charAt(0).toUpperCase() + type.slice(1)}`,
           content: itemContent || '',
-          position: { 
-            x: (Math.random() * 200 + 150 - panOffset.x) / scale,
-            y: (Math.random() * 200 + 150 - panOffset.y) / scale 
-          },
-          size: { width: 480, height: 360 },
+          position: position,
+          size: { width: WINDOW_WIDTH, height: 360 },
           isAttached: false,
           zIndex: newZIndex,
           connections: [],
         };
+        
+        lastGridPosition.current.x += WINDOW_WIDTH + GRID_GUTTER;
 
         if (type === 'ai') {
             newItem.title = "AI Assistant"
@@ -44,6 +59,9 @@ export default function WhiteboardPage() {
             newItem.content = 'Start writing your document here...';
         } else if (type === 'youtube' && !itemContent) {
             newItem.content = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+            newItem.title = 'New Video';
+        } else if (type === 'youtube' && itemContent) {
+            newItem.title = 'New Video';
         } else if (type === 'url' || type === 'social' || type === 'image' || type === 'tiktok' || type === 'instagram') {
             newItem.content = 'https://placehold.co/600x400.png';
             if (type === 'image') {
