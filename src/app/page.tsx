@@ -2,8 +2,8 @@
 
 import * as React from 'react';
 import type { WindowItem, WindowType } from '@/lib/types';
-import { Toolbar } from '@/components/whiteboard/toolbar';
 import { WhiteboardCanvas } from '@/components/whiteboard/whiteboard-canvas';
+import { Sidebar } from '@/components/whiteboard/sidebar';
 
 export default function WhiteboardPage() {
   const [items, setItems] = React.useState<WindowItem[]>([]);
@@ -14,18 +14,30 @@ export default function WhiteboardPage() {
       id: crypto.randomUUID(),
       type,
       title: `New ${type.charAt(0).toUpperCase() + type.slice(1)}`,
-      content: content || (type === 'doc' ? 'Start writing your document here...' : type === 'ai' ? '' : 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'),
-      position: { x: Math.random() * 200 + 50, y: Math.random() * 200 + 150 },
+      content: content || '',
+      position: { x: Math.random() * 200 + 150, y: Math.random() * 200 + 150 },
       size: { width: 480, height: 360 },
       isAttached: false,
-      zIndex: activeZIndex,
+      zIndex: activeZIndex + 1,
     };
+    
     if (type === 'ai') {
         newItem.title = "AI Assistant"
         newItem.size = { width: 400, height: 550 };
+    } else if (type === 'doc') {
+        newItem.content = 'Start writing your document here...';
+    } else if (type === 'youtube') {
+        newItem.content = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+    } else if (type === 'url' || type === 'social' || type === 'image') {
+        newItem.content = 'https://placehold.co/600x400.png';
+        if (type === 'image') {
+          newItem.title = 'New Image';
+        }
     }
+
+
     setItems((prev) => [...prev, newItem]);
-    setActiveZIndex((prev) => prev + 1);
+    setActiveZIndex((prev) => prev + 2);
   };
 
   const handleUpdateItem = (updatedItem: WindowItem) => {
@@ -39,15 +51,13 @@ export default function WhiteboardPage() {
   };
 
   const handleFocusItem = (id: string) => {
-    const focusedItem = items.find((item) => item.id === id);
-    if (focusedItem && focusedItem.zIndex < activeZIndex - 1) {
-      const newZIndex = activeZIndex;
-      setItems((prev) =>
-        prev.map((item) =>
-          item.id === id ? { ...item, zIndex: newZIndex } : item
-        )
+    const item = items.find(i => i.id === id);
+    if (item && item.zIndex < activeZIndex) {
+      const newZIndex = activeZIndex + 1;
+      setItems(prevItems =>
+        prevItems.map(i => (i.id === id ? { ...i, zIndex: newZIndex } : i))
       );
-      setActiveZIndex(newZIndex + 1);
+      setActiveZIndex(newZIndex);
     }
   };
 
@@ -61,7 +71,7 @@ export default function WhiteboardPage() {
   
   return (
     <div className="relative h-dvh w-full overflow-hidden antialiased">
-      <Toolbar onAddItem={handleAddItem} />
+      <Sidebar onAddItem={handleAddItem} />
       <WhiteboardCanvas
         items={items}
         onUpdateItem={handleUpdateItem}

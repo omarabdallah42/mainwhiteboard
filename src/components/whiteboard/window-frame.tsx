@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { YoutubeEmbed } from './youtube-embed';
-import { X, Paperclip, GripVertical } from 'lucide-react';
+import { X, Paperclip, GripVertical, Image as ImageIcon } from 'lucide-react';
 import { AiChatWindow } from './ai-chat-window';
 
 interface WindowFrameProps {
@@ -64,7 +64,11 @@ export function WindowFrame({ item, items, onUpdate, onDelete, onFocus, onToggle
         return <YoutubeEmbed url={item.content} />;
       case 'url':
       case 'social':
+      case 'tiktok':
+      case 'instagram':
         return <iframe src={item.content} className="h-full w-full border-0" title={item.title}></iframe>;
+      case 'image':
+        return <img src={item.content} alt={item.title} className="h-full w-full object-cover" data-ai-hint="placeholder image" />;
       case 'doc':
         return (
           <Textarea
