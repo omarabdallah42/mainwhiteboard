@@ -72,6 +72,7 @@ export default function WhiteboardPage() {
         } else if (type === 'tiktok') {
             if (itemContent.includes('/video/')) {
               newItem.title = 'New Reel';
+              newItem.size = { width: 325, height: 580 };
             } else {
               newItem.title = 'Tiktok Profile';
             }
