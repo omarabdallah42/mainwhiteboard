@@ -4,7 +4,6 @@ import * as React from 'react';
 import type { WindowItem, WindowType } from '@/lib/types';
 import { Toolbar } from '@/components/whiteboard/toolbar';
 import { WhiteboardCanvas } from '@/components/whiteboard/whiteboard-canvas';
-import { ChatPanel } from '@/components/whiteboard/chat-panel';
 
 export default function WhiteboardPage() {
   const [items, setItems] = React.useState<WindowItem[]>([]);
@@ -15,12 +14,16 @@ export default function WhiteboardPage() {
       id: crypto.randomUUID(),
       type,
       title: `New ${type.charAt(0).toUpperCase() + type.slice(1)}`,
-      content: content || (type === 'doc' ? 'Start writing your document here...' : 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'),
+      content: content || (type === 'doc' ? 'Start writing your document here...' : type === 'ai' ? '' : 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'),
       position: { x: Math.random() * 200 + 50, y: Math.random() * 200 + 150 },
       size: { width: 480, height: 360 },
       isAttached: false,
       zIndex: activeZIndex,
     };
+    if (type === 'ai') {
+        newItem.title = "AI Assistant"
+        newItem.size = { width: 400, height: 550 };
+    }
     setItems((prev) => [...prev, newItem]);
     setActiveZIndex((prev) => prev + 1);
   };
@@ -66,7 +69,6 @@ export default function WhiteboardPage() {
         onFocusItem={handleFocusItem}
         onToggleAttachment={handleToggleAttachment}
       />
-      <ChatPanel items={items} />
     </div>
   );
 }

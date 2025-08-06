@@ -1,4 +1,4 @@
-export type WindowType = 'youtube' | 'doc' | 'url' | 'social';
+export type WindowType = 'youtube' | 'doc' | 'url' | 'social' | 'ai';
 
 export type WindowItem = {
   id: string;

@@ -7,16 +7,18 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { YoutubeEmbed } from './youtube-embed';
 import { X, Paperclip, GripVertical } from 'lucide-react';
+import { AiChatWindow } from './ai-chat-window';
 
 interface WindowFrameProps {
   item: WindowItem;
+  items: WindowItem[];
   onUpdate: (item: WindowItem) => void;
   onDelete: (id: string) => void;
   onFocus: (id: string) => void;
   onToggleAttachment: (id: string) => void;
 }
 
-export function WindowFrame({ item, onUpdate, onDelete, onFocus, onToggleAttachment }: WindowFrameProps) {
+export function WindowFrame({ item, items, onUpdate, onDelete, onFocus, onToggleAttachment }: WindowFrameProps) {
   const [isDragging, setIsDragging] = React.useState(false);
   const [dragStart, setDragStart] = React.useState({ x: 0, y: 0 });
 
@@ -72,6 +74,8 @@ export function WindowFrame({ item, onUpdate, onDelete, onFocus, onToggleAttachm
             placeholder="Start writing..."
           />
         );
+      case 'ai':
+        return <AiChatWindow items={items} />;
       default:
         return <div>Unsupported content type</div>;
     }

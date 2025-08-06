@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, Youtube, Link as LinkIcon, FileText, Share2 } from 'lucide-react';
+import { Plus, Youtube, Link as LinkIcon, FileText, Share2, Bot } from 'lucide-react';
 
 interface ToolbarProps {
   onAddItem: (type: WindowType, content?: string) => void;
@@ -69,6 +69,10 @@ export function Toolbar({ onAddItem }: ToolbarProps) {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="center">
+            <DropdownMenuItem onClick={() => onAddItem('ai')}>
+                <Bot className="mr-2 h-4 w-4" />
+                <span>AI Assistant</span>
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={() => openDialog('youtube')}>
               <Youtube className="mr-2 h-4 w-4" />
               <span>YouTube Video</span>

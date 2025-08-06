@@ -3,15 +3,7 @@
 import * as React from 'react';
 import type { WindowItem } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
 import {
   generateScriptFromContext,
   GenerateScriptFromContextOutput,
@@ -25,9 +17,9 @@ import {
   SummarizeYouTubeVideoOutput,
 } from '@/ai/flows/summarize-youtube-video';
 import { useToast } from '@/hooks/use-toast';
-import { Bot, FileText, SendHorizonal, Youtube, Sparkles } from 'lucide-react';
+import { Bot, FileText, Youtube, Sparkles } from 'lucide-react';
 
-interface ChatPanelProps {
+interface AiChatWindowProps {
   items: WindowItem[];
 }
 
@@ -36,9 +28,8 @@ type Message = {
   content: string;
 };
 
-export function ChatPanel({ items }: ChatPanelProps) {
+export function AiChatWindow({ items }: AiChatWindowProps) {
   const [messages, setMessages] = React.useState<Message[]>([]);
-  const [input, setInput] = React.useState('');
   const [isLoading, setIsLoading] = React.useState(false);
   const { toast } = useToast();
   const scrollAreaRef = React.useRef<HTMLDivElement>(null);
@@ -123,26 +114,15 @@ export function ChatPanel({ items }: ChatPanelProps) {
   }
 
   return (
-    <Sheet>
-      <SheetTrigger asChild>
-        <Button
-          variant="primary"
-          className="fixed bottom-4 right-4 z-50 rounded-full shadow-lg"
-          size="lg"
-        >
-          <Bot className="mr-2 h-5 w-5" />
-          AI Assistant
-        </Button>
-      </SheetTrigger>
-      <SheetContent className="flex w-full flex-col p-0 sm:max-w-md">
-        <SheetHeader className="p-4 pb-2">
-          <SheetTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-primary" />
-            <span>AI Assistant</span>
-          </SheetTitle>
-        </SheetHeader>
-        <ScrollArea className="flex-grow p-4" ref={scrollAreaRef}>
+    <div className="flex h-full w-full flex-col">
+       <ScrollArea className="flex-grow p-4" ref={scrollAreaRef}>
           <div className="flex flex-col gap-4">
+            {messages.length === 0 && (
+                <div className="flex flex-col items-center justify-center text-center text-muted-foreground p-8 gap-4">
+                    <Sparkles className="h-10 w-10" />
+                    <p>Attach content windows to get started. You can then summarize them or generate a script.</p>
+                </div>
+            )}
             {messages.map((message, index) => (
               <div
                 key={index}
@@ -174,8 +154,8 @@ export function ChatPanel({ items }: ChatPanelProps) {
             )}
           </div>
         </ScrollArea>
-        <div className="border-t bg-background p-4">
-          <div className="mb-2 flex flex-wrap gap-2">
+        <div className="border-t bg-background p-2">
+          <div className="flex flex-wrap gap-2 justify-center">
              <Button size="sm" onClick={() => handleAction('script')} disabled={isLoading || items.filter(i => i.isAttached).length === 0}>Generate Script</Button>
              <Button size="sm" onClick={() => handleAction('summarizeDoc')} disabled={isLoading || !hasAttachable('doc')}>
                 <FileText className="mr-1 h-4 w-4"/> Summarize Docs
@@ -185,7 +165,6 @@ export function ChatPanel({ items }: ChatPanelProps) {
              </Button>
           </div>
         </div>
-      </SheetContent>
-    </Sheet>
+    </div>
   );
 }

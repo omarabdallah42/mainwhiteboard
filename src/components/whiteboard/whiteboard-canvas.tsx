@@ -27,6 +27,7 @@ export function WhiteboardCanvas({
           <WindowFrame
             key={item.id}
             item={item}
+            items={items}
             onUpdate={onUpdateItem}
             onDelete={onDeleteItem}
             onFocus={onFocusItem}
