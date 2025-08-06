@@ -9,6 +9,7 @@ import { YoutubeEmbed } from './youtube-embed';
 import { X, GripVertical, Link } from 'lucide-react';
 import { AiChatWindow } from './ai-chat-window';
 import { cn } from '@/lib/utils';
+import { TiktokEmbed } from './tiktok-embed';
 
 interface WindowFrameProps {
   item: WindowItem;
@@ -125,9 +126,10 @@ export function WindowFrame({ item, items, isLinking, isLinkingFrom, onUpdate, o
     switch (item.type) {
       case 'youtube':
         return <YoutubeEmbed url={item.content} />;
+      case 'tiktok':
+        return <TiktokEmbed url={item.content} />;
       case 'url':
       case 'social':
-      case 'tiktok':
       case 'instagram':
         return <iframe src={item.content} className="h-full w-full border-0" title={item.title}></iframe>;
       case 'image':
