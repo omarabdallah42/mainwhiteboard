@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -66,7 +67,9 @@ export default function WhiteboardPage() {
             } else {
               newItem.title = 'New Video';
             }
-        } else if (type === 'url' || type === 'social' || type === 'image' || type === 'tiktok' || type === 'instagram') {
+        } else if (type === 'tiktok') {
+            newItem.title = 'Tiktok Profile';
+        } else if (type === 'url' || type === 'social' || type === 'image' || type === 'instagram') {
             newItem.content = 'https://placehold.co/600x400.png';
             if (type === 'image') {
               newItem.title = 'New Image';
