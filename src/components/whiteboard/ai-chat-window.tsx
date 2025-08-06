@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -24,16 +25,17 @@ export function AiChatWindow({ item, items }: AiChatWindowProps) {
   const [input, setInput] = React.useState('');
   const [isLoading, setIsLoading] = React.useState(false);
   const { toast } = useToast();
-  const scrollAreaRef = React.useRef<HTMLDivElement>(null);
+  const scrollViewportRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTo({
-        top: scrollAreaRef.current.scrollHeight,
+    // This effect handles auto-scrolling to the latest message.
+    if (scrollViewportRef.current) {
+      scrollViewportRef.current.scrollTo({
+        top: scrollViewportRef.current.scrollHeight,
         behavior: 'smooth',
       });
     }
-  }, [messages]);
+  }, [messages, isLoading]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,8 +92,8 @@ export function AiChatWindow({ item, items }: AiChatWindowProps) {
 
   return (
     <div className="flex h-full w-full flex-col">
-       <ScrollArea className="flex-grow p-4" ref={scrollAreaRef}>
-          <div className="flex flex-col gap-4">
+       <ScrollArea className="flex-grow" viewportRef={scrollViewportRef}>
+          <div className="p-4 space-y-4">
             {messages.length === 0 && (
                 <div className="flex flex-col items-center justify-center text-center text-muted-foreground p-8 gap-4">
                     <MessageCircle className="h-10 w-10" />
