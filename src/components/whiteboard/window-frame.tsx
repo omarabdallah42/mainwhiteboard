@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { YoutubeEmbed } from './youtube-embed';
-import { X, Paperclip, GripVertical, Image as ImageIcon } from 'lucide-react';
+import { X, GripVertical, Image as ImageIcon } from 'lucide-react';
 import { AiChatWindow } from './ai-chat-window';
 
 interface WindowFrameProps {
@@ -18,7 +18,7 @@ interface WindowFrameProps {
   onToggleAttachment: (id: string) => void;
 }
 
-export function WindowFrame({ item, items, onUpdate, onDelete, onFocus, onToggleAttachment }: WindowFrameProps) {
+export function WindowFrame({ item, items, onUpdate, onDelete, onFocus }: WindowFrameProps) {
   const [isDragging, setIsDragging] = React.useState(false);
   const [dragStart, setDragStart] = React.useState({ x: 0, y: 0 });
 
@@ -111,15 +111,6 @@ export function WindowFrame({ item, items, onUpdate, onDelete, onFocus, onToggle
             />
           </div>
           <div className="flex items-center gap-1">
-            <Button
-              size="icon"
-              variant="ghost"
-              className={`window-control h-7 w-7 ${item.isAttached ? 'bg-accent text-accent-foreground' : ''}`}
-              onClick={() => onToggleAttachment(item.id)}
-              title={item.isAttached ? 'Detach from context' : 'Attach to context'}
-            >
-              <Paperclip className="h-4 w-4" />
-            </Button>
             <Button
               size="icon"
               variant="ghost"

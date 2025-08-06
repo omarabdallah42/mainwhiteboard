@@ -60,14 +60,6 @@ export default function WhiteboardPage() {
       setActiveZIndex(newZIndex);
     }
   };
-
-  const handleToggleAttachment = (id: string) => {
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, isAttached: !item.isAttached } : item
-      )
-    );
-  };
   
   return (
     <div className="relative h-dvh w-full overflow-hidden antialiased">
@@ -77,7 +69,7 @@ export default function WhiteboardPage() {
         onUpdateItem={handleUpdateItem}
         onDeleteItem={handleDeleteItem}
         onFocusItem={handleFocusItem}
-        onToggleAttachment={handleToggleAttachment}
+        onToggleAttachment={() => {}}
       />
     </div>
   );
