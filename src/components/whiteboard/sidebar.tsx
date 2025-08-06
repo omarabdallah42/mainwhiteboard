@@ -12,6 +12,8 @@ import { AddPlaylistDialog } from './add-playlist-dialog';
 import { AddTiktokProfileDialog } from './add-tiktok-profile-dialog';
 import { AddChannelDialog } from './add-channel-dialog';
 import { AddTiktokReelDialog } from './add-tiktok-reel-dialog';
+import { AddInstagramProfileDialog } from './add-instagram-profile-dialog';
+import { AddInstagramReelDialog } from './add-instagram-reel-dialog';
 
 interface SidebarProps {
   onAddItem: (type: WindowType, content?: string | string[]) => void;
@@ -39,6 +41,8 @@ export function Sidebar({ onAddItem }: SidebarProps) {
   const [isAddTiktokProfileDialogOpen, setisAddTiktokProfileDialogOpen] = React.useState(false);
   const [isAddTiktokReelDialogOpen, setIsAddTiktokReelDialogOpen] = React.useState(false);
   const [isAddChannelDialogOpen, setIsAddChannelDialogOpen] = React.useState(false);
+  const [isAddInstagramProfileDialogOpen, setIsAddInstagramProfileDialogOpen] = React.useState(false);
+  const [isAddInstagramReelDialogOpen, setIsAddInstagramReelDialogOpen] = React.useState(false);
   
   const toolButtons = [
      { type: 'doc', icon: FileText, tooltip: 'Document'},
@@ -64,6 +68,14 @@ export function Sidebar({ onAddItem }: SidebarProps) {
 
   const handleAddChannel = (link: string) => {
     onAddItem('youtube', link);
+  }
+
+  const handleAddInstagramProfile = (link: string) => {
+    onAddItem('instagram', link);
+  }
+
+  const handleAddInstagramReel = (link: string) => {
+    onAddItem('instagram', link);
   }
 
   return (
@@ -126,14 +138,26 @@ export function Sidebar({ onAddItem }: SidebarProps) {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" className="rounded-full" onClick={() => onAddItem('instagram', 'https://www.instagram.com')}>
+            <DropdownMenu>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="rounded-full">
                       <InstagramIcon className="h-5 w-5" />
-                  </Button>
-              </TooltipTrigger>
-              <TooltipContent side="right">Instagram</TooltipContent>
-            </Tooltip>
+                    </Button>
+                  </DropdownMenuTrigger>
+                </TooltipTrigger>
+                <TooltipContent side="right">Instagram</TooltipContent>
+              </Tooltip>
+              <DropdownMenuContent side="right" align="center">
+                <DropdownMenuItem onSelect={() => setIsAddInstagramProfileDialogOpen(true)}>
+                  Profile link
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => setIsAddInstagramReelDialogOpen(true)}>
+                  Reel link
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             
             {toolButtons.map(tool => (
                  <Tooltip key={tool.tooltip}>
@@ -171,6 +195,16 @@ export function Sidebar({ onAddItem }: SidebarProps) {
         isOpen={isAddChannelDialogOpen}
         onOpenChange={setIsAddChannelDialogOpen}
         onAddChannel={handleAddChannel}
+      />
+      <AddInstagramProfileDialog
+        isOpen={isAddInstagramProfileDialogOpen}
+        onOpenChange={setIsAddInstagramProfileDialogOpen}
+        onAddProfile={handleAddInstagramProfile}
+      />
+      <AddInstagramReelDialog
+        isOpen={isAddInstagramReelDialogOpen}
+        onOpenChange={setIsAddInstagramReelDialogOpen}
+        onAddReel={handleAddInstagramReel}
       />
     </TooltipProvider>
   );

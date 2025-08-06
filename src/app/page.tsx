@@ -76,7 +76,14 @@ export default function WhiteboardPage() {
             } else {
               newItem.title = 'Tiktok Profile';
             }
-        } else if (type === 'url' || type === 'social' || type === 'image' || type === 'instagram') {
+        } else if (type === 'instagram') {
+          if (itemContent.includes('/reel/')) {
+            newItem.title = 'New Reel';
+            newItem.size = { width: 325, height: 580 };
+          } else {
+            newItem.title = 'Instagram Profile';
+          }
+        } else if (type === 'url' || type === 'social' || type === 'image') {
             newItem.content = 'https://placehold.co/600x400.png';
             if (type === 'image') {
               newItem.title = 'New Image';
