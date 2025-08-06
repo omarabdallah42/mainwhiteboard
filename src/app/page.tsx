@@ -60,6 +60,9 @@ export default function WhiteboardPage() {
         } else if (type === 'doc') {
             newItem.content = '';
             newItem.title = 'Document Upload'
+        } else if (type === 'image') {
+            newItem.content = '';
+            newItem.title = 'Image Upload'
         } else if (type === 'youtube' && !itemContent) {
             newItem.content = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
             newItem.title = 'New Video';
@@ -87,11 +90,8 @@ export default function WhiteboardPage() {
           }
         } else if (type === 'url') {
             newItem.title = 'New Website';
-        } else if (type === 'social' || type === 'image') {
+        } else if (type === 'social') {
             newItem.content = 'https://placehold.co/600x400.png';
-            if (type === 'image') {
-              newItem.title = 'New Image';
-            }
         }
         return newItem;
     };

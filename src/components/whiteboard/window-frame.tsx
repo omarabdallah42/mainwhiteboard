@@ -11,6 +11,7 @@ import { AiChatWindow } from './ai-chat-window';
 import { cn } from '@/lib/utils';
 import { TiktokEmbed } from './tiktok-embed';
 import { DocumentDropzone } from './document-dropzone';
+import { ImageDropzone } from './image-dropzone';
 
 interface WindowFrameProps {
   item: WindowItem;
@@ -134,7 +135,7 @@ export function WindowFrame({ item, items, isLinking, isLinkingFrom, onUpdate, o
       case 'instagram':
         return <iframe src={item.content} className="h-full w-full border-0" title={item.title}></iframe>;
       case 'image':
-        return <img src={item.content} alt={item.title} className="h-full w-full object-cover" data-ai-hint="placeholder image" />;
+        return <ImageDropzone item={item} onUpdate={onUpdate} />;
       case 'doc':
         return <DocumentDropzone item={item} onUpdate={onUpdate} />;
       case 'ai':
