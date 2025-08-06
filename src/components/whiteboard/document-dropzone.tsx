@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -48,7 +49,7 @@ export function DocumentDropzone({ item, onUpdate }: DocumentDropzoneProps) {
     }
   }, []); // Only run once on mount
 
-  const handleFileParse = async (files: FileList) => {
+  const handleFileParse = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
 
     setIsLoading(true);
@@ -94,7 +95,7 @@ export function DocumentDropzone({ item, onUpdate }: DocumentDropzoneProps) {
     
     const updatedDocs = [...parsedDocuments, ...newDocs];
     setParsedDocuments(updatedDocs);
-    onUpdate({ ...item, content: JSON.stringify(updatedDocs) });
+    onUpdate({ ...item, content: JSON.stringify(updatedDocs), title: updatedDocs.length > 1 ? `${updatedDocs.length} Documents` : updatedDocs[0]?.name || 'Document Upload' });
     setIsLoading(false);
   };
 
@@ -123,12 +124,12 @@ export function DocumentDropzone({ item, onUpdate }: DocumentDropzoneProps) {
   };
   
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-      handleFileParse(e.target.files!);
+      handleFileParse(e.target.files);
   }
 
   const handleClearDocuments = () => {
     setParsedDocuments([]);
-    onUpdate({ ...item, content: '' });
+    onUpdate({ ...item, content: '', title: 'Document Upload' });
   };
   
   if (parsedDocuments.length > 0) {
@@ -147,10 +148,21 @@ export function DocumentDropzone({ item, onUpdate }: DocumentDropzoneProps) {
             ))}
           </div>
         </ScrollArea>
-        <div className="border-t p-2">
+        <div className="border-t p-2 flex items-center justify-between">
            <Button variant="outline" size="sm" onClick={handleClearDocuments}>
             Clear Documents
           </Button>
+           <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+            Add More...
+          </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            className="hidden"
+            accept=".txt,.pdf,.docx"
+            onChange={handleFileSelect}
+          />
         </div>
       </div>
     );
@@ -168,7 +180,7 @@ export function DocumentDropzone({ item, onUpdate }: DocumentDropzoneProps) {
       onDrop={handleDrop}
     >
       <input
-        ref={fileInputRef}
+        ref={fileInputref}
         type="file"
         multiple
         className="hidden"
