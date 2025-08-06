@@ -28,7 +28,6 @@ export function AiChatWindow({ item, items }: AiChatWindowProps) {
   const scrollViewportRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
-    // This effect handles auto-scrolling to the latest message.
     if (scrollViewportRef.current) {
       scrollViewportRef.current.scrollTo({
         top: scrollViewportRef.current.scrollHeight,
