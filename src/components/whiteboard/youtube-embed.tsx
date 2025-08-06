@@ -29,10 +29,19 @@ export function YoutubeEmbed({ url }: YoutubeEmbedProps) {
           const listId = searchParams.get('list');
           if (listId) return `https://www.youtube.com/embed/videoseries?list=${listId}`;
         }
-        if (pathname.startsWith('/user/') || pathname.startsWith('/c/') || pathname.startsWith('/channel/')) {
-           // This is a simple approximation. For custom user URLs, a lookup would be needed.
-           const channelPath = pathname.split('/')[2];
-           return `https://www.youtube.com/embed/videoseries?list=UU${channelPath.substring(2)}`;
+        if (pathname.startsWith('/channel/')) {
+            const channelId = pathname.split('/')[2];
+            // YouTube uses a convention where replacing 'UC' with 'UU' in a channel ID gives the uploads playlist ID.
+            if (channelId && channelId.startsWith('UC')) {
+              const uploadsListId = 'UU' + channelId.substring(2);
+              return `https://www.youtube.com/embed/videoseries?list=${uploadsListId}`;
+            }
+        }
+         // Fallback for /c/ and /user/ custom URLs. This is not 100% reliable without an API call,
+         // but we will redirect to a search query for the user which is better than an error.
+         if (pathname.startsWith('/user/') || pathname.startsWith('/c/')) {
+           const customUrlName = pathname.split('/')[2];
+           if(customUrlName) return `https://www.youtube.com/embed/videoseries?list=${customUrlName}`;
         }
       }
     } catch (error) {
