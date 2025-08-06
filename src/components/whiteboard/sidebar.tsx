@@ -37,8 +37,6 @@ export function Sidebar({ onAddItem }: SidebarProps) {
   const [isAddPlaylistDialogOpen, setIsAddPlaylistDialogOpen] = React.useState(false);
   
   const toolButtons = [
-     { type: 'tiktok', icon: TikTokIcon, tooltip: 'TikTok', content: 'https://www.tiktok.com' },
-     { type: 'instagram', icon: InstagramIcon, tooltip: 'Instagram', content: 'https://www.instagram.com' },
      { type: 'doc', icon: FileText, tooltip: 'Document'},
      { type: 'url', icon: Globe, tooltip: 'Website / URL', content: 'https://google.com'},
      { type: 'image', icon: ImageIcon, tooltip: 'Image'},
@@ -90,6 +88,36 @@ export function Sidebar({ onAddItem }: SidebarProps) {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+
+            <DropdownMenu>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="rounded-full">
+                      <TikTokIcon className="h-5 w-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                </TooltipTrigger>
+                <TooltipContent side="right">TikTok</TooltipContent>
+              </Tooltip>
+              <DropdownMenuContent side="right" align="center">
+                <DropdownMenuItem onSelect={() => onAddItem('tiktok', 'https://www.tiktok.com/@tiktok')}>
+                  Tiktok profile
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => onAddItem('tiktok', 'https://www.tiktok.com/@tiktok/video/73183 TikTok')}>
+                  Reel link
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" className="rounded-full" onClick={() => onAddItem('instagram', 'https://www.instagram.com')}>
+                      <InstagramIcon className="h-5 w-5" />
+                  </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right">Instagram</TooltipContent>
+            </Tooltip>
             
             {toolButtons.map(tool => (
                  <Tooltip key={tool.tooltip}>
