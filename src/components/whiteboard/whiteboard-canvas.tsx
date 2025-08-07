@@ -14,6 +14,7 @@ interface WhiteboardCanvasProps {
   scale: number;
   panOffset: { x: number; y: number };
   selection: any; // Will be typed properly from the hook
+
   onUpdateItem: (item: WindowItem) => void;
   onDeleteItem: (id: string) => void;
   onFocusItem: (id: string) => void;
@@ -30,6 +31,7 @@ export function WhiteboardCanvas({
   scale,
   panOffset,
   selection,
+
   onUpdateItem,
   onDeleteItem,
   onFocusItem,
@@ -130,34 +132,43 @@ export function WhiteboardCanvas({
     };
   }, [isPanning, linking, selection, scale, panOffset, lastMousePos, items, onPanChange]);
 
-  // Handle pan start and selection box
+  // Handle mouse down based on current tool
   const handleMouseDown = (e: React.MouseEvent) => {
-    // Don't start panning if clicking on window frames or UI elements
+    // Don't start interaction if clicking on window frames or UI elements
     if ((e.target as HTMLElement).closest('.window-frame') || 
         (e.target as HTMLElement).closest('button') ||
         (e.target as HTMLElement).closest('input') ||
         (e.target as HTMLElement).closest('textarea')) {
       return;
     }
-    
+
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    const startX = (e.clientX - rect.left - panOffset.x) / scale;
+    const startY = (e.clientY - rect.top - panOffset.y) / scale;
+
+    // Handle linking mode
     if (linking) {
-      onToggleConnection('');
+      // In link mode, just wait for clicks on connection handles
       return;
     }
-
+    
+    // Default select tool behavior
     const isMultiSelect = e.ctrlKey || e.metaKey;
+    
+    // Check for Shift-drag for temporary box selection
+    if (e.shiftKey) {
+      selection.startBoxSelection(startX, startY);
+      return;
+    }
     
     // If not multi-selecting, clear current selection
     if (!isMultiSelect) {
       selection.clearSelection();
     }
-
-    // Start selection box if shift is held
-    if (e.shiftKey) {
-      selection.startBoxSelection(e.clientX, e.clientY);
-      return;
-    }
     
+    // Start panning
     setIsPanning(true);
     setLastMousePos({ x: e.clientX, y: e.clientY });
     e.preventDefault();
@@ -242,7 +253,11 @@ export function WhiteboardCanvas({
       ref={canvasRef} 
       className="h-full w-full overflow-hidden cursor-grab active:cursor-grabbing" 
       onMouseDown={handleMouseDown}
-      style={{ cursor: isPanning ? 'grabbing' : 'grab' }}
+      style={{ 
+        cursor: isPanning ? 'grabbing' : 
+                linking ? 'crosshair' :
+                'grab'
+      }}
     >
       {/* Infinite grid background */}
       {renderGrid()}

@@ -6,12 +6,11 @@ import * as React from 'react';
 import type { WindowItem, WindowType } from '@/lib/types';
 import { WhiteboardCanvas } from '@/components/whiteboard/whiteboard-canvas';
 import { Sidebar } from '@/components/whiteboard/sidebar';
-import { Minimap } from '@/components/whiteboard/minimap';
+import { TopBar } from '@/components/whiteboard/top-bar';
+import { FloatingToolbar } from '@/components/whiteboard/floating-toolbar';
+import { BottomPanel } from '@/components/whiteboard/bottom-panel';
 
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { ZoomIn, ZoomOut, Redo, Undo, Copy, Trash2, Search, AlignLeft, AlignCenter, AlignRight, AlignJustify, Move, Lock, Unlock } from 'lucide-react';
-import { ThemeToggle } from '@/components/whiteboard/theme-toggle';
 import { ProtectedRoute } from '@/components/auth/protected-route';
 import { useAuth } from '@/contexts/auth-context';
 import { useSelection } from '@/hooks/use-selection';
@@ -28,6 +27,7 @@ export default function WhiteboardPage() {
   const [panOffset, setPanOffset] = React.useState({ x: 0, y: 0 });
   const [searchQuery, setSearchQuery] = React.useState('');
   const [clipboard, setClipboard] = React.useState<WindowItem[]>([]);
+  const [showGrid, setShowGrid] = React.useState(true);
   
   // Enhanced functionality hooks
   const selection = useSelection();
@@ -222,11 +222,11 @@ export default function WhiteboardPage() {
           
           if (newConnection) {
             // Update the from item with the new connection
-            const updatedFromItem = {
-              ...fromItem,
+          const updatedFromItem = {
+            ...fromItem,
               connections: [...fromItem.connections, newConnection]
-            };
-            handleUpdateItem(updatedFromItem);
+          };
+          handleUpdateItem(updatedFromItem);
             
             if (!history.isUndoRedoing) {
               history.addToHistory({
@@ -257,7 +257,7 @@ export default function WhiteboardPage() {
       setPanOffset({ x: 0, y: 0 });
     }
   };
-
+  
   const handlePanChange = (newOffset: { x: number; y: number }) => {
     setPanOffset(newOffset);
   };
@@ -576,161 +576,75 @@ export default function WhiteboardPage() {
       item.type.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [items, searchQuery]);
-
+  
   return (
     <ProtectedRoute>
       <div className="relative h-dvh w-full overflow-hidden antialiased">
-        <Sidebar onAddItem={handleAddItem} />
-        <WhiteboardCanvas
-          items={filteredItems}
-          connections={connections.connections}
-          linking={linking}
-          scale={scale}
-          panOffset={panOffset}
-          selection={selection}
-          onUpdateItem={handleUpdateItem}
-          onDeleteItem={handleDeleteItem}
-          onFocusItem={handleFocusItem}
-          onToggleConnection={handleToggleConnection}
-          onPanChange={handlePanChange}
-          onScaleChange={handleScaleChange}
-          onConnectionDelete={handleConnectionDelete}
+        {/* Top Bar */}
+        <TopBar
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          onSave={() => toast({ description: "Whiteboard saved!" })}
+          onExport={() => toast({ description: "Export feature coming soon!" })}
+          onShare={() => toast({ description: "Share feature coming soon!" })}
+          projectName="My Whiteboard"
         />
-        <div className="fixed top-4 left-4 z-50 flex flex-col gap-2">
-          <ThemeToggle />
-          
-          {/* Search Bar */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="Search items..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-64 bg-card shadow-lg pl-10"
-            />
-          </div>
-        </div>
-        <div className="fixed top-4 right-4 z-50">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={signOut}
-            className="bg-card shadow-lg"
-          >
-            Sign Out
-          </Button>
-        </div>
-        {/* Item Management Toolbar */}
-        {selection.selectedIds.size > 0 && (
-          <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-card border rounded-lg p-2 shadow-lg">
-            <span className="text-sm font-medium text-muted-foreground">
-              {selection.selectedIds.size} selected
-            </span>
-            <div className="w-px h-6 bg-border" />
-            <Button variant="ghost" size="sm" onClick={copySelectedItems} title="Copy (Ctrl+C)">
-              <Copy className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm" onClick={duplicateSelectedItems} title="Duplicate (Ctrl+D)">
-              <Move className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm" onClick={deleteSelectedItems} title="Delete (Del)">
-              <Trash2 className="h-4 w-4" />
-            </Button>
-            <div className="w-px h-6 bg-border" />
-            <Button variant="ghost" size="sm" onClick={() => alignSelectedItems('left')} title="Align Left">
-              <AlignLeft className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => alignSelectedItems('center')} title="Align Center">
-              <AlignCenter className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => alignSelectedItems('right')} title="Align Right">
-              <AlignRight className="h-4 w-4" />
-            </Button>
-            <div className="w-px h-6 bg-border" />
-            <Button variant="ghost" size="sm" onClick={toggleLockSelectedItems} title="Toggle Lock">
-              {selection.getSelectedItems(items).some(item => item.isLocked) ? (
-                <Unlock className="h-4 w-4" />
-              ) : (
-                <Lock className="h-4 w-4" />
-              )}
-            </Button>
-          </div>
-        )}
 
-
-
-        {/* History & Zoom Controls */}
-        <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
-          {/* History Controls */}
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              size="icon" 
-              onClick={history.undo} 
-              disabled={!history.canUndo}
-              className="bg-card shadow-lg" 
-              title="Undo (Ctrl+Z)"
-            >
-              <Undo className="h-4 w-4" />
-            </Button>
-            <Button 
-              variant="outline" 
-              size="icon" 
-              onClick={history.redo} 
-              disabled={!history.canRedo}
-              className="bg-card shadow-lg" 
-              title="Redo (Ctrl+Y)"
-            >
-              <Redo className="h-4 w-4" />
-            </Button>
-          </div>
-          
-          {/* Zoom Controls */}
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" onClick={() => handleZoom('out')} className="bg-card shadow-lg" title="Zoom Out">
-              <ZoomOut className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="icon" onClick={() => handleZoom('reset')} className="bg-card shadow-lg w-auto px-3" title="Reset View">
-              {Math.round(scale * 100)}%
-            </Button>
-            <Button variant="outline" size="icon" onClick={() => handleZoom('in')} className="bg-card shadow-lg" title="Zoom In">
-              <ZoomIn className="h-4 w-4" />
-            </Button>
-          </div>
-          
-          {/* Quick Actions */}
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => selection.selectAll(items)} 
-              className="bg-card shadow-lg"
-              title="Select All (Ctrl+A)"
-            >
-              Select All
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={pasteItems} 
-              disabled={clipboard.length === 0}
-              className="bg-card shadow-lg"
-              title="Paste (Ctrl+V)"
-            >
-              Paste
-            </Button>
-          </div>
+        {/* Left Sidebar */}
+        <div className="pt-16"> {/* Account for top bar height */}
+          <Sidebar onAddItem={handleAddItem} />
         </div>
-        
-        <Minimap
+
+        {/* Main Canvas Area */}
+        <div className="pt-16 pb-16"> {/* Account for top and bottom bars */}
+          <WhiteboardCanvas
+            items={filteredItems}
+            connections={connections.connections}
+            linking={linking}
+            scale={scale}
+            panOffset={panOffset}
+            selection={selection}
+
+            onUpdateItem={handleUpdateItem}
+            onDeleteItem={handleDeleteItem}
+            onFocusItem={handleFocusItem}
+            onToggleConnection={handleToggleConnection}
+            onPanChange={handlePanChange}
+            onScaleChange={handleScaleChange}
+            onConnectionDelete={handleConnectionDelete}
+          />
+        </div>
+
+        {/* Floating Toolbar */}
+        <FloatingToolbar
+          hasSelection={selection.selectedIds.size > 0}
+          selectedItemsCount={selection.selectedIds.size}
+          onCopy={copySelectedItems}
+          onDelete={deleteSelectedItems}
+          onDuplicate={duplicateSelectedItems}
+          onAlignLeft={() => alignSelectedItems('left')}
+          onAlignCenter={() => alignSelectedItems('center')}
+          onAlignRight={() => alignSelectedItems('right')}
+          onLock={toggleLockSelectedItems}
+        />
+
+        {/* Bottom Panel */}
+        <BottomPanel
           items={items}
           scale={scale}
           panOffset={panOffset}
           onPanChange={handlePanChange}
+          onZoomIn={() => handleZoom('in')}
+          onZoomOut={() => handleZoom('out')}
+          onZoomReset={() => handleZoom('reset')}
+          canUndo={history.canUndo}
+          canRedo={history.canRedo}
+          onUndo={history.undo}
+          onRedo={history.redo}
+          selectedItemsCount={selection.selectedIds.size}
+          showGrid={showGrid}
+          onToggleGrid={() => setShowGrid(!showGrid)}
         />
-
-
       </div>
     </ProtectedRoute>
   );
