@@ -29,6 +29,28 @@ export async function generateScriptFromContext(input: GenerateScriptFromContext
   return generateScriptFromContextFlow(input);
 }
 
+const prompt = ai.definePrompt({
+  name: 'generateScriptPrompt',
+  input: {schema: GenerateScriptFromContextInputSchema},
+  output: {schema: GenerateScriptFromContextOutputSchema},
+  prompt: `You are an expert scriptwriter and creative assistant named Meedro. Your goal is to help content creators, marketers, and creative agencies.
+
+The user has provided a prompt and may have provided some context from their whiteboard. Use this information to generate a helpful response.
+
+If context is provided, use it as the primary source of information.
+
+User Prompt:
+{{{prompt}}}
+
+{{#if context}}
+Context from Whiteboard:
+---
+{{{context}}}
+---
+{{/if}}
+`,
+});
+
 const generateScriptFromContextFlow = ai.defineFlow(
   {
     name: 'generateScriptFromContextFlow',
@@ -36,35 +58,25 @@ const generateScriptFromContextFlow = ai.defineFlow(
     outputSchema: GenerateScriptFromContextOutputSchema,
   },
   async (input) => {
-    const webhookUrl = 'https://n8n.tabtix.com/webhook/33d16a65-ac59-4c8b-a2b7-0d676a0f5b26';
-
     try {
-      const response = await fetch(webhookUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          prompt: input.prompt,
-          context: input.context || '', // Ensure context is at least an empty string
-        }),
-      });
+        // Since no model is configured, we will return a placeholder response.
+        // In the next step, we will configure the OpenAI model.
+        if (!process.env.OPENAI_API_KEY) {
+            return { script: "I'm not configured to work without an AI model. Please add the OpenAI plugin and API key to continue." };
+        }
+        
+        // This part will be enabled once the OpenAI plugin is correctly installed.
+        // const {output} = await prompt(input, { model: gpt4o });
+        // if (!output) {
+        //   throw new Error('The AI model did not return a valid response.');
+        // }
+        // return output;
 
-      if (!response.ok) {
-        throw new Error(`Webhook failed with status: ${response.status} ${response.statusText}`);
-      }
-      
-      const responseData = await response.json();
-
-      // Check if the response has an "output" field, otherwise use the "script" field, or stringify the response as a fallback.
-      const script = responseData.output || responseData.script || JSON.stringify(responseData);
-      
-      return { script };
+        return { script: `I received your prompt: "${input.prompt}". The OpenAI integration is pending the correct package installation.` };
 
     } catch (error: any) {
-      console.error("Error calling webhook:", error);
-      // Let the user know something went wrong.
-      return { script: `I'm sorry, I was unable to connect to the script generator. Please check the webhook configuration and n8n workflow.\n\nError: ${error.message}` };
+        console.error("Error calling AI model:", error);
+        return { script: `I'm sorry, I encountered an error and couldn't process your request. Please check the server logs for details.\n\nError: ${error.message}` };
     }
   }
 );
