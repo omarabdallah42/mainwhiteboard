@@ -127,29 +127,34 @@ export function getConnectionHandlePosition(
 ): { x: number; y: number } {
   const { position, size } = item;
   
+  // Clamp offset to prevent connections from appearing outside the window
+  const clampedOffset = Math.max(0.1, Math.min(0.9, offset));
+  
   switch (side) {
     case 'left':
       return {
         x: position.x,
-        y: position.y + size.height * offset,
+        y: position.y + size.height * clampedOffset,
       };
     case 'right':
       return {
         x: position.x + size.width,
-        y: position.y + size.height * offset,
+        y: position.y + size.height * clampedOffset,
       };
     case 'top':
       return {
-        x: position.x + size.width * offset,
+        x: position.x + size.width * clampedOffset,
         y: position.y,
       };
     case 'bottom':
       return {
-        x: position.x + size.width * offset,
+        x: position.x + size.width * clampedOffset,
         y: position.y + size.height,
       };
   }
 }
+
+
 
 // Find optimal connection sides for two items
 export function findOptimalConnectionSides(

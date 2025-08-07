@@ -28,10 +28,23 @@ export function EnhancedConnectionLine({
   const [isHovered, setIsHovered] = React.useState(false);
   const style = getConnectionStyle(connection);
   
-  // Calculate optimal connection points
+  // Calculate optimal connection points with spreading for multiple connections
   const sides = findOptimalConnectionSides(fromItem, toItem);
-  const fromPoint = getConnectionHandlePosition(fromItem, sides.from);
-  const toPoint = getConnectionHandlePosition(toItem, sides.to);
+  
+  // Simple approach: use connection ID hash to create consistent spreading
+  const connectionHash = connection.id.split('').reduce((a, b) => {
+    a = ((a << 5) - a) + b.charCodeAt(0);
+    return a & a;
+  }, 0);
+  
+  // Create a pseudo-random but deterministic offset based on connection ID
+  const spreadFactor = Math.abs(connectionHash % 100) / 100; // 0-1 range
+  const offsetVariation = 0.2; // ±20% variation from center
+  const fromOffset = 0.5 + (spreadFactor - 0.5) * offsetVariation;
+  const toOffset = 0.5 + ((1 - spreadFactor) - 0.5) * offsetVariation; // Inverse for variety
+  
+  const fromPoint = getConnectionHandlePosition(fromItem, sides.from, fromOffset);
+  const toPoint = getConnectionHandlePosition(toItem, sides.to, toOffset);
   
   // Calculate path with smart routing
   const pathData = calculateConnectionPath(fromPoint, toPoint, obstacles);

@@ -247,20 +247,6 @@ export function WhiteboardCanvas({
       {/* Infinite grid background */}
       {renderGrid()}
       
-      {/* Center origin indicator */}
-      <div
-        className="absolute pointer-events-none z-10"
-        style={{
-          left: panOffset.x,
-          top: panOffset.y,
-          transform: 'translate(-50%, -50%)',
-        }}
-      >
-        <div className="w-4 h-4 border-2 border-primary rounded-full bg-primary/20 animate-pulse" />
-        <div className="absolute top-6 left-1/2 transform -translate-x-1/2 text-xs text-primary font-medium bg-card px-2 py-1 rounded shadow">
-          Origin (0,0)
-        </div>
-      </div>
       
       <div
         className="relative pointer-events-auto"
