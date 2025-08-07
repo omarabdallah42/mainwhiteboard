@@ -97,7 +97,53 @@ export function AiChatWindow({ item, items }: AiChatWindowProps) {
         
         const context = connectedItems.map(i => {
             let content = '';
-            if (i.type === 'doc') {
+            
+            // Handle YouTube videos with comprehensive data
+            if (i.type === 'youtube' && i.scrapedData?.transcript) {
+                content = `📺 YouTube Video: "${i.scrapedData.title}"\n`;
+                content += `👤 Channel: ${i.scrapedData.author}`;
+                if (i.scrapedData.channelSubscribers) {
+                    content += ` (${(i.scrapedData.channelSubscribers / 1000).toFixed(1)}K subscribers)`;
+                }
+                content += `\n⏱️ Duration: ${i.scrapedData.duration}\n`;
+                if (i.scrapedData.viewCount) {
+                    content += `👀 Views: ${(i.scrapedData.viewCount / 1000).toFixed(1)}K`;
+                }
+                if (i.scrapedData.likes) {
+                    content += ` | 👍 Likes: ${(i.scrapedData.likes / 1000).toFixed(1)}K`;
+                }
+                if (i.scrapedData.commentsCount) {
+                    content += ` | 💬 Comments: ${i.scrapedData.commentsCount}`;
+                }
+                content += `\n`;
+                if (i.scrapedData.uploadDate) {
+                    content += `📅 Published: ${i.scrapedData.uploadDate}\n`;
+                }
+                if (i.scrapedData.description && i.scrapedData.description !== i.scrapedData.transcript) {
+                    content += `📋 Description: ${i.scrapedData.description.substring(0, 200)}...\n`;
+                }
+                content += `📝 Full Transcript: ${i.scrapedData.transcript}`;
+            }
+            
+            // Handle YouTube playlists with comprehensive data
+            if (i.type === 'youtube-playlist' && i.scrapedData?.transcript) {
+                content = `📋 YouTube Playlist: "${i.scrapedData.title}"\n`;
+                content += `👤 Creator: ${i.scrapedData.author}\n`;
+                if (i.scrapedData.videos && Array.isArray(i.scrapedData.videos)) {
+                    content += `🎬 Total Videos: ${i.scrapedData.videos.length}\n`;
+                    content += `⏱️ Total Duration: ${i.scrapedData.totalDuration || 'N/A'}\n`;
+                }
+                if (i.scrapedData.viewCount) {
+                    content += `👀 Total Views: ${(i.scrapedData.viewCount / 1000).toFixed(1)}K\n`;
+                }
+                if (i.scrapedData.description) {
+                    content += `📋 Description: ${i.scrapedData.description.substring(0, 200)}...\n`;
+                }
+                content += `📝 Combined Content: ${i.scrapedData.transcript}`;
+            }
+            
+            // Handle documents
+            else if (i.type === 'doc') {
                 try {
                     const parsedDocs = JSON.parse(i.content);
                     if (Array.isArray(parsedDocs)) {
@@ -106,9 +152,12 @@ export function AiChatWindow({ item, items }: AiChatWindowProps) {
                 } catch {
                     content = i.content;
                 }
-            } else {
+            } 
+            // Handle other content types
+            else {
                content = i.content;
             }
+            
             return `## ${i.title} (${i.type})\n${content}`;
         }).join('\n\n---\n\n');
         

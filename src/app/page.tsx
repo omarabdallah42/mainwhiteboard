@@ -68,7 +68,8 @@ export default function WhiteboardPage() {
         const newItem: WindowItem = {
           id: crypto.randomUUID(),
           type,
-          title: `New ${type.charAt(0).toUpperCase() + type.slice(1)}`,
+          title: type === 'youtube-playlist' ? 'YouTube Playlist' : 
+                 `New ${type.charAt(0).toUpperCase() + type.slice(1)}`,
           content: itemContent || '',
           position: position,
           size: { width: WINDOW_WIDTH, height: 360 },

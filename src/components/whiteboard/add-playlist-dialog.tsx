@@ -36,7 +36,7 @@ export function AddPlaylistDialog({ isOpen, onOpenChange, onAddPlaylist }: AddPl
         <DialogHeader>
           <DialogTitle>Add YouTube Playlist</DialogTitle>
           <DialogDescription>
-            Enter the URL of the YouTube playlist you want to add to the whiteboard.
+            🎵 Paste a YouTube playlist URL to analyze multiple videos at once.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -49,7 +49,7 @@ export function AddPlaylistDialog({ isOpen, onOpenChange, onAddPlaylist }: AddPl
               value={link}
               onChange={(e) => setLink(e.target.value)}
               className="col-span-3"
-              placeholder="https://www.youtube.com/playlist?list=..."
+              placeholder="🎵 Paste playlist URL: https://www.youtube.com/playlist?list=PLAYLIST_ID"
             />
           </div>
         </div>

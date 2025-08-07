@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { YoutubeEmbed } from './youtube-embed';
+import { YoutubePlaylistEmbed } from './youtube-playlist-embed';
 import { X, GripVertical, Lock } from 'lucide-react';
 import { AiChatWindow } from './ai-chat-window';
 import { cn } from '@/lib/utils';
@@ -136,7 +137,9 @@ export function WindowFrame({ item, items, isLinking, isLinkingFrom, isSelected,
   const renderContent = () => {
     switch (item.type) {
       case 'youtube':
-        return <YoutubeEmbed url={item.content} />;
+        return <YoutubeEmbed url={item.content} item={item} onUpdate={onUpdate} />;
+      case 'youtube-playlist':
+        return <YoutubePlaylistEmbed url={item.content} item={item} onUpdate={onUpdate} />;
       case 'tiktok':
         return <TiktokEmbed url={item.content} />;
       case 'url':

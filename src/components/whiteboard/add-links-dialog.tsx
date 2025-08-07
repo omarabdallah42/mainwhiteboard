@@ -50,9 +50,9 @@ export function AddLinksDialog({ isOpen, onOpenChange, onAddItems }: AddLinksDia
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Add YouTube Video Links</DialogTitle>
+          <DialogTitle>Add YouTube Videos</DialogTitle>
           <DialogDescription>
-            Enter one or more YouTube video URLs. Each will be added as a new window.
+            🔗 Paste YouTube video URLs below. Each video will be added as a separate window with AI analysis capabilities.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4 max-h-96 overflow-y-auto">
@@ -61,7 +61,7 @@ export function AddLinksDialog({ isOpen, onOpenChange, onAddItems }: AddLinksDia
               <Input
                 value={link}
                 onChange={(e) => handleLinkChange(index, e.target.value)}
-                placeholder="https://www.youtube.com/watch?v=..."
+                placeholder="🎬 Paste YouTube URL: https://www.youtube.com/watch?v=VIDEO_ID"
               />
               {links.length > 1 && (
                 <Button variant="ghost" size="icon" onClick={() => handleRemoveLinkInput(index)}>
