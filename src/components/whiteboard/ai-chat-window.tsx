@@ -5,10 +5,10 @@ import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
-import { Bot, MessageCircle, Send } from 'lucide-react';
+import { Bot, MessageCircle, Send, ChevronDown } from 'lucide-react';
 import { Textarea } from '../ui/textarea';
 import type { WindowItem } from '@/lib/types';
-import { generateScriptFromContext } from '@/ai/flows/generate-script-from-context';
+import { generateScriptFromContext } from '@/lib/ai-generate-script';
 
 type Message = {
   role: 'user' | 'ai';
@@ -24,17 +24,62 @@ export function AiChatWindow({ item, items }: AiChatWindowProps) {
   const [messages, setMessages] = React.useState<Message[]>([]);
   const [input, setInput] = React.useState('');
   const [isLoading, setIsLoading] = React.useState(false);
+  const [showScrollButton, setShowScrollButton] = React.useState(false);
   const { toast } = useToast();
   const scrollViewportRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
+    // Auto-scroll to bottom when new messages are added
+    const autoScrollToBottom = () => {
+      if (scrollViewportRef.current) {
+        const viewport = scrollViewportRef.current;
+        viewport.scrollTop = viewport.scrollHeight;
+      }
+    };
+
+    // Use a small delay to ensure content is rendered
+    const timeoutId = setTimeout(autoScrollToBottom, 100);
+    
+    return () => clearTimeout(timeoutId);
+  }, [messages, isLoading]);
+
+  // Check if user is at bottom of chat
+  const checkIfAtBottom = React.useCallback(() => {
+    if (!scrollViewportRef.current) return;
+    
+    const viewport = scrollViewportRef.current;
+    const isAtBottom = viewport.scrollTop + viewport.clientHeight >= viewport.scrollHeight - 10; // 10px threshold
+    setShowScrollButton(!isAtBottom && messages.length > 0);
+  }, [messages.length]);
+
+  // Scroll to bottom function
+  const scrollToBottom = React.useCallback(() => {
     if (scrollViewportRef.current) {
-      scrollViewportRef.current.scrollTo({
-        top: scrollViewportRef.current.scrollHeight,
-        behavior: 'smooth',
+      const viewport = scrollViewportRef.current;
+      viewport.scrollTo({
+        top: viewport.scrollHeight,
+        behavior: 'smooth'
       });
     }
-  }, [messages, isLoading]);
+  }, []);
+
+  // Add scroll event listener
+  React.useEffect(() => {
+    const viewport = scrollViewportRef.current;
+    if (!viewport) return;
+
+    const handleScroll = () => {
+      checkIfAtBottom();
+    };
+
+    viewport.addEventListener('scroll', handleScroll);
+    return () => viewport.removeEventListener('scroll', handleScroll);
+  }, [checkIfAtBottom]);
+
+  // Check if at bottom when messages change
+  React.useEffect(() => {
+    checkIfAtBottom();
+  }, [messages, checkIfAtBottom]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,9 +135,9 @@ export function AiChatWindow({ item, items }: AiChatWindowProps) {
   };
 
   return (
-    <div className="flex h-full w-full flex-col">
-       <ScrollArea className="flex-grow" viewportRef={scrollViewportRef}>
-          <div className="p-4 space-y-4">
+    <div className="flex h-full w-full flex-col overflow-hidden relative">
+       <ScrollArea className="flex-1 min-h-0" viewportRef={scrollViewportRef}>
+          <div className="p-4 space-y-4 min-h-full">
             {messages.length === 0 && (
                 <div className="flex flex-col items-center justify-center text-center text-muted-foreground p-8 gap-4">
                     <MessageCircle className="h-10 w-10" />
@@ -132,7 +177,23 @@ export function AiChatWindow({ item, items }: AiChatWindowProps) {
             )}
           </div>
         </ScrollArea>
-        <div className="border-t bg-background p-2">
+        
+        {/* Scroll to bottom button */}
+        {showScrollButton && (
+          <div className="absolute bottom-16 right-4 z-10">
+            <Button
+              size="sm"
+              variant="secondary"
+              className="h-8 w-8 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 bg-primary text-primary-foreground hover:bg-primary/90"
+              onClick={scrollToBottom}
+              title="Scroll to newest message"
+            >
+              <ChevronDown className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+        
+        <div className="border-t bg-background p-2 flex-shrink-0">
             <form onSubmit={handleSendMessage} className="flex items-center gap-2">
                 <Textarea 
                     value={input}

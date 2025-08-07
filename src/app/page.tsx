@@ -9,8 +9,11 @@ import { Sidebar } from '@/components/whiteboard/sidebar';
 import { Button } from '@/components/ui/button';
 import { ZoomIn, ZoomOut, Redo } from 'lucide-react';
 import { ThemeToggle } from '@/components/whiteboard/theme-toggle';
+import { ProtectedRoute } from '@/components/auth/protected-route';
+import { useAuth } from '@/contexts/auth-context';
 
 export default function WhiteboardPage() {
+  const { user, signOut } = useAuth();
   const [items, setItems] = React.useState<WindowItem[]>([]);
   const [activeZIndex, setActiveZIndex] = React.useState(1);
   const [linking, setLinking] = React.useState<{ from: string } | null>(null);
@@ -200,38 +203,50 @@ export default function WhiteboardPage() {
   };
   
   return (
-    <div 
-      className="relative h-dvh w-full overflow-hidden antialiased"
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
-    >
-      <Sidebar onAddItem={handleAddItem} />
-      <WhiteboardCanvas
-        items={items}
-        linking={linking}
-        scale={scale}
-        panOffset={panOffset}
-        onUpdateItem={handleUpdateItem}
-        onDeleteItem={handleDeleteItem}
-        onFocusItem={handleFocusItem}
-        onToggleConnection={handleToggleConnection}
-      />
-      <div className="fixed top-4 left-4 z-50">
-        <ThemeToggle />
+    <ProtectedRoute>
+      <div 
+        className="relative h-dvh w-full overflow-hidden antialiased"
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+      >
+        <Sidebar onAddItem={handleAddItem} />
+        <WhiteboardCanvas
+          items={items}
+          linking={linking}
+          scale={scale}
+          panOffset={panOffset}
+          onUpdateItem={handleUpdateItem}
+          onDeleteItem={handleDeleteItem}
+          onFocusItem={handleFocusItem}
+          onToggleConnection={handleToggleConnection}
+        />
+        <div className="fixed top-4 left-4 z-50">
+          <ThemeToggle />
+        </div>
+        <div className="fixed top-4 right-4 z-50">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={signOut}
+            className="bg-card shadow-lg"
+          >
+            Sign Out
+          </Button>
+        </div>
+        <div className="fixed bottom-4 right-4 z-50 flex items-center gap-2">
+          <Button variant="outline" size="icon" onClick={() => handleZoom('out')} className="bg-card shadow-lg">
+            <ZoomOut className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" size="icon" onClick={() => handleZoom('reset')} className="bg-card shadow-lg w-auto px-3">
+            {Math.round(scale * 100)}%
+          </Button>
+          <Button variant="outline" size="icon" onClick={() => handleZoom('in')} className="bg-card shadow-lg">
+            <ZoomIn className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
-      <div className="fixed bottom-4 right-4 z-50 flex items-center gap-2">
-        <Button variant="outline" size="icon" onClick={() => handleZoom('out')} className="bg-card shadow-lg">
-          <ZoomOut className="h-4 w-4" />
-        </Button>
-        <Button variant="outline" size="icon" onClick={() => handleZoom('reset')} className="bg-card shadow-lg w-auto px-3">
-          {Math.round(scale * 100)}%
-        </Button>
-        <Button variant="outline" size="icon" onClick={() => handleZoom('in')} className="bg-card shadow-lg">
-          <ZoomIn className="h-4 w-4" />
-        </Button>
-      </div>
-    </div>
+    </ProtectedRoute>
   );
 }

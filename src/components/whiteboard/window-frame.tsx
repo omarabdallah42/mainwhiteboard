@@ -202,7 +202,7 @@ export function WindowFrame({ item, items, isLinking, isLinkingFrom, onUpdate, o
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="flex-grow p-0">
+        <CardContent className="flex-1 p-0 min-h-0 overflow-hidden">
           {renderContent()}
         </CardContent>
          <div 
