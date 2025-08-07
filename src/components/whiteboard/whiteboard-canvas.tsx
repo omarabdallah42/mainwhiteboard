@@ -1,35 +1,42 @@
 'use client';
 
 import * as React from 'react';
-import type { WindowItem } from '@/lib/types';
+import type { WindowItem, Connection } from '@/lib/types';
 import { WindowFrame } from './window-frame';
 import { ConnectionLine } from './connection-line';
+import { EnhancedConnectionLine } from './enhanced-connection-line';
 import { X } from 'lucide-react';
 
 interface WhiteboardCanvasProps {
   items: WindowItem[];
+  connections: Connection[];
   linking: { from: string } | null;
   scale: number;
   panOffset: { x: number; y: number };
+  selection: any; // Will be typed properly from the hook
   onUpdateItem: (item: WindowItem) => void;
   onDeleteItem: (id: string) => void;
   onFocusItem: (id: string) => void;
   onToggleConnection: (id: string) => void;
   onPanChange: (offset: { x: number; y: number }) => void;
   onScaleChange: (scale: number) => void;
+  onConnectionDelete?: (connectionId: string) => void;
 }
 
 export function WhiteboardCanvas({
   items,
+  connections,
   linking,
   scale,
   panOffset,
+  selection,
   onUpdateItem,
   onDeleteItem,
   onFocusItem,
   onToggleConnection,
   onPanChange,
   onScaleChange,
+  onConnectionDelete,
 }: WhiteboardCanvasProps) {
   const [mousePosition, setMousePosition] = React.useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = React.useState(false);
@@ -77,7 +84,7 @@ export function WhiteboardCanvas({
     }
   }, [scale, panOffset, onScaleChange, onPanChange]);
 
-  // Handle mouse movement for linking and panning
+  // Handle mouse movement for linking, panning, and selection
   React.useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (isPanning) {
@@ -92,6 +99,10 @@ export function WhiteboardCanvas({
         setLastMousePos({ x: e.clientX, y: e.clientY });
       }
       
+      if (selection.isBoxSelecting) {
+        selection.updateBoxSelection(e.clientX, e.clientY);
+      }
+      
       if (linking && canvasRef.current) {
         const rect = canvasRef.current.getBoundingClientRect();
         setMousePosition({ 
@@ -102,10 +113,13 @@ export function WhiteboardCanvas({
     };
 
     const handleMouseUp = () => {
+      if (selection.isBoxSelecting) {
+        selection.endBoxSelection(items, scale, panOffset);
+      }
       setIsPanning(false);
     };
 
-    if (isPanning || linking) {
+    if (isPanning || linking || selection.isBoxSelecting) {
       window.addEventListener('mousemove', handleMouseMove);
       window.addEventListener('mouseup', handleMouseUp);
     }
@@ -114,9 +128,9 @@ export function WhiteboardCanvas({
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isPanning, linking, scale, panOffset, lastMousePos, onPanChange]);
+  }, [isPanning, linking, selection, scale, panOffset, lastMousePos, items, onPanChange]);
 
-  // Handle pan start
+  // Handle pan start and selection box
   const handleMouseDown = (e: React.MouseEvent) => {
     // Don't start panning if clicking on window frames or UI elements
     if ((e.target as HTMLElement).closest('.window-frame') || 
@@ -128,6 +142,19 @@ export function WhiteboardCanvas({
     
     if (linking) {
       onToggleConnection('');
+      return;
+    }
+
+    const isMultiSelect = e.ctrlKey || e.metaKey;
+    
+    // If not multi-selecting, clear current selection
+    if (!isMultiSelect) {
+      selection.clearSelection();
+    }
+
+    // Start selection box if shift is held
+    if (e.shiftKey) {
+      selection.startBoxSelection(e.clientX, e.clientY);
       return;
     }
     
@@ -152,9 +179,6 @@ export function WhiteboardCanvas({
   };
 
   const linkingFromItem = linking ? items.find(item => item.id === linking.from) : null;
-  const allConnections = items.flatMap(item => 
-    item.connections.map(conn => ({...conn, from: item.id}))
-  );
 
   // Generate grid pattern for infinite canvas
   const renderGrid = () => {
@@ -247,61 +271,31 @@ export function WhiteboardCanvas({
           transformOrigin: '0 0',
         }}
       >
-        <svg className="absolute inset-0 pointer-events-none" style={{ width: '100%', height: '100%', strokeWidth: 2 / scale }}>
-          {allConnections.map((conn, index) => {
-            const fromItem = items.find(item => item.id === conn.from);
-            const toItem = items.find(item => item.id === conn.to);
+        <svg className="absolute inset-0 pointer-events-none" style={{ width: '100%', height: '100%' }}>
+          {/* Enhanced connections */}
+          {connections.map((connection) => {
+            const fromItem = items.find(item => item.id === connection.from);
+            const toItem = items.find(item => item.id === connection.to);
             if (!fromItem || !toItem) return null;
 
-            const p1 = getHandlePosition(fromItem, 'right');
-            const p2 = getHandlePosition(toItem, 'left');
-
-            return <ConnectionLine key={`${conn.from}-${conn.to}`} from={p1} to={p2} />;
+            return (
+              <EnhancedConnectionLine
+                key={connection.id}
+                connection={connection}
+                fromItem={fromItem}
+                toItem={toItem}
+                scale={scale}
+                onDelete={onConnectionDelete}
+                obstacles={items.filter(item => item.id !== connection.from && item.id !== connection.to)}
+              />
+            );
           })}
+          
+          {/* Temporary connection while linking */}
           {linkingFromItem && (
             <ConnectionLine from={getHandlePosition(linkingFromItem, 'right')} to={mousePosition} />
           )}
         </svg>
-
-        {/* Connection disconnect icons */}
-        {allConnections.map((conn) => {
-            const fromItem = items.find(item => item.id === conn.from);
-            const toItem = items.find(item => item.id === conn.to);
-            if (!fromItem || !toItem) return null;
-            
-            const p1 = getHandlePosition(fromItem, 'right');
-            const p2 = getHandlePosition(toItem, 'left');
-
-            const controlX1 = p1.x + 100;
-            const controlY1 = p1.y;
-            const controlX2 = p2.x - 100;
-            const controlY2 = p2.y;
-
-            const t = 0.5; // Midpoint
-            const midX = Math.pow(1 - t, 3) * p1.x + 3 * Math.pow(1 - t, 2) * t * controlX1 + 3 * (1 - t) * Math.pow(t, 2) * controlX2 + Math.pow(t, 3) * p2.x;
-            const midY = Math.pow(1 - t, 3) * p1.y + 3 * Math.pow(1 - t, 2) * t * controlY1 + 3 * (1 - t) * Math.pow(t, 2) * controlY2 + Math.pow(t, 3) * p2.y;
-
-
-            return (
-                <div
-                    key={`${conn.from}-${conn.to}-icon`}
-                    className="absolute z-10"
-                    style={{ left: midX, top: midY, transform: 'translate(-50%, -50%)' }}
-                >
-                    <button
-                        className="flex h-6 w-6 items-center justify-center rounded-full border bg-card text-muted-foreground hover:bg-destructive hover:text-destructive-foreground"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handleDisconnect(conn.from, conn.to);
-                        }}
-                        title="Disconnect"
-                        style={{ transform: `scale(${1 / scale})` }}
-                    >
-                        <X className="h-4 w-4" />
-                    </button>
-                </div>
-            )
-        })}
 
         {items.map((item) => (
           <WindowFrame
@@ -310,12 +304,28 @@ export function WhiteboardCanvas({
             items={items}
             isLinking={!!linking}
             isLinkingFrom={linking?.from === item.id}
+            isSelected={selection.isSelected(item.id)}
             onUpdate={onUpdateItem}
             onDelete={onDeleteItem}
             onFocus={onFocusItem}
             onToggleConnection={onToggleConnection}
+            onSelect={(id: string, multiSelect: boolean) => selection.selectItem(id, multiSelect)}
           />
         ))}
+        
+        {/* Selection box */}
+        {selection.selectionBox && (
+          <div
+            className="absolute border-2 border-primary bg-primary/10 pointer-events-none"
+            style={{
+              left: Math.min(selection.selectionBox.startX, selection.selectionBox.endX),
+              top: Math.min(selection.selectionBox.startY, selection.selectionBox.endY),
+              width: Math.abs(selection.selectionBox.endX - selection.selectionBox.startX),
+              height: Math.abs(selection.selectionBox.endY - selection.selectionBox.startY),
+              zIndex: 1000,
+            }}
+          />
+        )}
       </div>
     </main>
   );

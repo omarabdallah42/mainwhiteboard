@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { YoutubeEmbed } from './youtube-embed';
-import { X, GripVertical } from 'lucide-react';
+import { X, GripVertical, Lock } from 'lucide-react';
 import { AiChatWindow } from './ai-chat-window';
 import { cn } from '@/lib/utils';
 import { TiktokEmbed } from './tiktok-embed';
@@ -17,13 +17,15 @@ interface WindowFrameProps {
   items: WindowItem[];
   isLinking: boolean;
   isLinkingFrom: boolean;
+  isSelected: boolean;
   onUpdate: (item: WindowItem) => void;
   onDelete: (id: string) => void;
   onFocus: (id: string) => void;
   onToggleConnection: (id: string) => void;
+  onSelect: (id: string, multiSelect: boolean) => void;
 }
 
-export function WindowFrame({ item, items, isLinking, isLinkingFrom, onUpdate, onDelete, onFocus, onToggleConnection }: WindowFrameProps) {
+export function WindowFrame({ item, items, isLinking, isLinkingFrom, isSelected, onUpdate, onDelete, onFocus, onToggleConnection, onSelect }: WindowFrameProps) {
   const [isDragging, setIsDragging] = React.useState(false);
   const [dragStart, setDragStart] = React.useState({ x: 0, y: 0 });
   const [isResizing, setIsResizing] = React.useState(false);
@@ -31,6 +33,10 @@ export function WindowFrame({ item, items, isLinking, isLinkingFrom, onUpdate, o
 
   const handleDragStart = (e: React.MouseEvent<HTMLDivElement>) => {
     if ((e.target as HTMLElement).closest('.window-control') || (e.target as HTMLElement).closest('.resize-handle')) return;
+    
+    // Don't drag if item is locked
+    if (item.isLocked) return;
+    
     // Prevent canvas panning when starting a drag on a window
     e.stopPropagation();
     
@@ -67,6 +73,10 @@ export function WindowFrame({ item, items, isLinking, isLinkingFrom, onUpdate, o
 
   const handleResizeStart = (e: React.MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
+    
+    // Don't resize if item is locked
+    if (item.isLocked) return;
+    
     setIsResizing(true);
     setResizeStart({ x: e.clientX, y: e.clientY, width: item.size.width, height: item.size.height });
     onFocus(item.id);
@@ -152,14 +162,19 @@ export function WindowFrame({ item, items, isLinking, isLinkingFrom, onUpdate, o
     return (
       <div 
         className={cn(
-          "absolute top-1/2 -translate-y-1/2 h-4 w-4 rounded-full border-2 bg-background cursor-pointer hover:bg-primary hover:border-primary-foreground window-control",
+          "connection-handle absolute top-1/2 -translate-y-1/2 h-4 w-4 rounded-full border-2 bg-background cursor-pointer hover:bg-primary hover:border-primary-foreground hover:scale-110 transition-all window-control z-10",
           side === 'left' ? "-left-2" : "-right-2",
           (isLinking || isConnected) ? "border-primary" : "border-muted-foreground/50",
           isLinkingFrom && side === 'right' && "bg-primary animate-pulse"
         )}
         onClick={(e) => {
           e.stopPropagation();
+          e.preventDefault();
           onToggleConnection(item.id);
+        }}
+        onMouseDown={(e) => {
+          e.stopPropagation();
+          e.preventDefault();
         }}
       />
     );
@@ -175,19 +190,35 @@ export function WindowFrame({ item, items, isLinking, isLinkingFrom, onUpdate, o
         height: item.size.height,
         zIndex: item.zIndex,
       }}
-      onMouseDown={() => onFocus(item.id)}
+      onMouseDown={(e) => {
+        // Don't select window if clicking on connection handle
+        if ((e.target as HTMLElement).closest('.connection-handle')) return;
+        
+        onFocus(item.id);
+        const isMultiSelect = e.ctrlKey || e.metaKey;
+        onSelect(item.id, isMultiSelect);
+      }}
     >
-      <Card className="flex h-full w-full flex-col shadow-2xl transition-all duration-300 hover:shadow-primary/30 overflow-hidden relative">
+      <Card className={cn(
+        "flex h-full w-full flex-col shadow-2xl transition-all duration-300 hover:shadow-primary/30 overflow-hidden relative",
+        isSelected && "ring-2 ring-primary ring-offset-2",
+        item.isLocked && "opacity-75"
+      )}>
         <CardHeader
-          className="flex cursor-grab flex-row items-center justify-between p-2 active:cursor-grabbing"
+          className={cn(
+            "flex flex-row items-center justify-between p-2",
+            item.isLocked ? "cursor-default" : "cursor-grab active:cursor-grabbing"
+          )}
           onMouseDown={handleDragStart}
         >
           <div className="flex items-center gap-2">
             <GripVertical className="h-5 w-5 text-muted-foreground" />
+            {item.isLocked && <Lock className="h-4 w-4 text-muted-foreground" />}
             <Input
               value={item.title}
               onChange={(e) => onUpdate({ ...item, title: e.target.value })}
               className="h-7 border-none bg-transparent text-sm font-medium focus-visible:ring-1"
+              disabled={item.isLocked}
             />
           </div>
           <div className="flex items-center gap-1">
@@ -205,10 +236,12 @@ export function WindowFrame({ item, items, isLinking, isLinkingFrom, onUpdate, o
         <CardContent className="flex-1 p-0 min-h-0 overflow-hidden">
           {renderContent()}
         </CardContent>
-         <div 
-          className="resize-handle absolute bottom-0 right-0 h-4 w-4 cursor-nwse-resize"
-          onMouseDown={handleResizeStart}
-        />
+         {!item.isLocked && (
+           <div 
+            className="resize-handle absolute bottom-0 right-0 h-4 w-4 cursor-nwse-resize"
+            onMouseDown={handleResizeStart}
+          />
+         )}
       </Card>
       <ConnectionHandle side="left" />
       <ConnectionHandle side="right" />
