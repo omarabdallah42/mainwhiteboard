@@ -15,6 +15,8 @@ interface WhiteboardCanvasProps {
   onDeleteItem: (id: string) => void;
   onFocusItem: (id: string) => void;
   onToggleConnection: (id: string) => void;
+  onPanChange: (offset: { x: number; y: number }) => void;
+  onScaleChange: (scale: number) => void;
 }
 
 export function WhiteboardCanvas({
@@ -26,33 +28,71 @@ export function WhiteboardCanvas({
   onDeleteItem,
   onFocusItem,
   onToggleConnection,
+  onPanChange,
+  onScaleChange,
 }: WhiteboardCanvasProps) {
   const [mousePosition, setMousePosition] = React.useState({ x: 0, y: 0 });
+  const [isPanning, setIsPanning] = React.useState(false);
+  const [lastMousePos, setLastMousePos] = React.useState({ x: 0, y: 0 });
   const canvasRef = React.useRef<HTMLDivElement>(null);
-  const [canvasSize, setCanvasSize] = React.useState({ width: 0, height: 0 });
+  
+  // Infinite canvas dimensions
+  const CANVAS_SIZE = 50000; // Large but finite for performance
+  const GRID_SIZE = 50;
 
+
+  // Handle mouse wheel for zooming
   React.useEffect(() => {
-    let width = window.innerWidth / scale;
-    let height = window.innerHeight / scale;
-
-    if (items.length > 0) {
-      const padding = 200;
-      const minX = Math.min(...items.map(item => item.position.x));
-      const minY = Math.min(...items.map(item => item.position.y));
-      const maxX = Math.max(...items.map(item => item.position.x + item.size.width));
-      const maxY = Math.max(...items.map(item => item.position.y + item.size.height));
+    const handleWheel = (e: WheelEvent) => {
+      if (!canvasRef.current) return;
       
-      width = Math.max(width, maxX + padding - minX);
-      height = Math.max(height, maxY + padding - minY);
+      e.preventDefault();
+      
+      const rect = canvasRef.current.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+      
+      // Calculate zoom direction and amount
+      const zoomDirection = e.deltaY > 0 ? -1 : 1;
+      const zoomFactor = 1 + (zoomDirection * 0.1);
+      const newScale = Math.max(0.1, Math.min(3, scale * zoomFactor));
+      
+      if (newScale !== scale) {
+        // Calculate new pan offset to zoom towards mouse cursor
+        const scaleRatio = newScale / scale;
+        const newPanOffset = {
+          x: mouseX - (mouseX - panOffset.x) * scaleRatio,
+          y: mouseY - (mouseY - panOffset.y) * scaleRatio,
+        };
+        
+        onScaleChange(newScale);
+        onPanChange(newPanOffset);
+      }
+    };
+
+    const canvas = canvasRef.current;
+    if (canvas) {
+      canvas.addEventListener('wheel', handleWheel, { passive: false });
+      return () => canvas.removeEventListener('wheel', handleWheel);
     }
-    
-    setCanvasSize({ width, height });
-  }, [items, scale]);
+  }, [scale, panOffset, onScaleChange, onPanChange]);
 
-
+  // Handle mouse movement for linking and panning
   React.useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      if (canvasRef.current) {
+      if (isPanning) {
+        const deltaX = e.clientX - lastMousePos.x;
+        const deltaY = e.clientY - lastMousePos.y;
+        
+        onPanChange({
+          x: panOffset.x + deltaX,
+          y: panOffset.y + deltaY,
+        });
+        
+        setLastMousePos({ x: e.clientX, y: e.clientY });
+      }
+      
+      if (linking && canvasRef.current) {
         const rect = canvasRef.current.getBoundingClientRect();
         setMousePosition({ 
           x: (e.clientX - rect.left - panOffset.x) / scale,
@@ -60,13 +100,41 @@ export function WhiteboardCanvas({
         });
       }
     };
-    if (linking) {
+
+    const handleMouseUp = () => {
+      setIsPanning(false);
+    };
+
+    if (isPanning || linking) {
       window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
     }
+    
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [linking, scale, panOffset]);
+  }, [isPanning, linking, scale, panOffset, lastMousePos, onPanChange]);
+
+  // Handle pan start
+  const handleMouseDown = (e: React.MouseEvent) => {
+    // Don't start panning if clicking on window frames or UI elements
+    if ((e.target as HTMLElement).closest('.window-frame') || 
+        (e.target as HTMLElement).closest('button') ||
+        (e.target as HTMLElement).closest('input') ||
+        (e.target as HTMLElement).closest('textarea')) {
+      return;
+    }
+    
+    if (linking) {
+      onToggleConnection('');
+      return;
+    }
+    
+    setIsPanning(true);
+    setLastMousePos({ x: e.clientX, y: e.clientY });
+    e.preventDefault();
+  };
 
   const getHandlePosition = (item: WindowItem, side: 'left' | 'right') => {
     return {
@@ -88,14 +156,93 @@ export function WhiteboardCanvas({
     item.connections.map(conn => ({...conn, from: item.id}))
   );
 
+  // Generate grid pattern for infinite canvas
+  const renderGrid = () => {
+    const gridSpacing = GRID_SIZE * scale;
+    const offsetX = panOffset.x % gridSpacing;
+    const offsetY = panOffset.y % gridSpacing;
+    
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const cols = Math.ceil(viewportWidth / gridSpacing) + 2;
+    const rows = Math.ceil(viewportHeight / gridSpacing) + 2;
+    
+    const lines = [];
+    
+    // Vertical lines
+    for (let i = -1; i <= cols; i++) {
+      const x = offsetX + i * gridSpacing;
+      lines.push(
+        <line
+          key={`v-${i}`}
+          x1={x}
+          y1={0}
+          x2={x}
+          y2={viewportHeight}
+          stroke="currentColor"
+          strokeWidth={0.5}
+          opacity={0.2}
+        />
+      );
+    }
+    
+    // Horizontal lines
+    for (let i = -1; i <= rows; i++) {
+      const y = offsetY + i * gridSpacing;
+      lines.push(
+        <line
+          key={`h-${i}`}
+          x1={0}
+          y1={y}
+          x2={viewportWidth}
+          y2={y}
+          stroke="currentColor"
+          strokeWidth={0.5}
+          opacity={0.2}
+        />
+      );
+    }
+    
+    return (
+      <svg 
+        className="absolute inset-0 pointer-events-none text-muted-foreground/30"
+        style={{ width: '100%', height: '100%' }}
+      >
+        {lines}
+      </svg>
+    );
+  };
+
   return (
-    <main ref={canvasRef} className="h-full w-full overflow-auto" onClick={() => linking && onToggleConnection('')}>
-      <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(to_bottom,white_0,white_calc(100%-4rem),transparent_100%)] dark:bg-grid-slate-700/40"></div>
+    <main 
+      ref={canvasRef} 
+      className="h-full w-full overflow-hidden cursor-grab active:cursor-grabbing" 
+      onMouseDown={handleMouseDown}
+      style={{ cursor: isPanning ? 'grabbing' : 'grab' }}
+    >
+      {/* Infinite grid background */}
+      {renderGrid()}
+      
+      {/* Center origin indicator */}
       <div
-        className="relative"
+        className="absolute pointer-events-none z-10"
         style={{
-          width: canvasSize.width,
-          height: canvasSize.height,
+          left: panOffset.x,
+          top: panOffset.y,
+          transform: 'translate(-50%, -50%)',
+        }}
+      >
+        <div className="w-4 h-4 border-2 border-primary rounded-full bg-primary/20 animate-pulse" />
+        <div className="absolute top-6 left-1/2 transform -translate-x-1/2 text-xs text-primary font-medium bg-card px-2 py-1 rounded shadow">
+          Origin (0,0)
+        </div>
+      </div>
+      
+      <div
+        className="relative pointer-events-auto"
+        style={{
+          width: CANVAS_SIZE,
+          height: CANVAS_SIZE,
           transform: `scale(${scale}) translate(${panOffset.x / scale}px, ${panOffset.y / scale}px)`,
           transformOrigin: '0 0',
         }}

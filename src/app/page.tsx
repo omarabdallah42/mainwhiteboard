@@ -6,6 +6,7 @@ import * as React from 'react';
 import type { WindowItem, WindowType } from '@/lib/types';
 import { WhiteboardCanvas } from '@/components/whiteboard/whiteboard-canvas';
 import { Sidebar } from '@/components/whiteboard/sidebar';
+import { Minimap } from '@/components/whiteboard/minimap';
 import { Button } from '@/components/ui/button';
 import { ZoomIn, ZoomOut, Redo } from 'lucide-react';
 import { ThemeToggle } from '@/components/whiteboard/theme-toggle';
@@ -19,10 +20,8 @@ export default function WhiteboardPage() {
   const [linking, setLinking] = React.useState<{ from: string } | null>(null);
   const [scale, setScale] = React.useState(1);
   const [panOffset, setPanOffset] = React.useState({ x: 0, y: 0 });
-  const [isPanning, setIsPanning] = React.useState(false);
-  const [panStart, setPanStart] = React.useState({ x: 0, y: 0 });
   
-  const lastGridPosition = React.useRef({ x: 150, y: 150 });
+  const lastGridPosition = React.useRef({ x: 0, y: 0 });
   const GRID_GUTTER = 20;
   const WINDOW_WIDTH = 480;
 
@@ -32,15 +31,22 @@ export default function WhiteboardPage() {
     const createItem = (itemContent: string): WindowItem => {
         newZIndex++;
         
-        const canvasWidth = window.innerWidth / scale;
-        if (lastGridPosition.current.x + WINDOW_WIDTH + GRID_GUTTER > (canvasWidth - panOffset.x) / scale) {
-            lastGridPosition.current.x = 150;
+        // Calculate position in world coordinates (center of current view)
+        const viewportCenterX = (window.innerWidth / 2 - panOffset.x) / scale;
+        const viewportCenterY = (window.innerHeight / 2 - panOffset.y) / scale;
+        
+        // Grid layout around the center
+        const gridColumns = Math.floor(window.innerWidth / (WINDOW_WIDTH + GRID_GUTTER));
+        const currentColumn = Math.floor((lastGridPosition.current.x - viewportCenterX + (WINDOW_WIDTH / 2)) / (WINDOW_WIDTH + GRID_GUTTER));
+        
+        if (currentColumn >= gridColumns) {
+            lastGridPosition.current.x = viewportCenterX - (gridColumns * (WINDOW_WIDTH + GRID_GUTTER)) / 2;
             lastGridPosition.current.y += 360 + GRID_GUTTER;
         }
 
         const position = {
-            x: (lastGridPosition.current.x - panOffset.x) / scale,
-            y: (lastGridPosition.current.y - panOffset.y) / scale,
+            x: lastGridPosition.current.x,
+            y: lastGridPosition.current.y,
         };
 
         const newItem: WindowItem = {
@@ -166,51 +172,26 @@ export default function WhiteboardPage() {
 
   const handleZoom = (direction: 'in' | 'out' | 'reset') => {
     if (direction === 'in') {
-      setScale(s => Math.min(s + 0.1, 2));
+      setScale(s => Math.min(s + 0.1, 3));
     } else if (direction === 'out') {
-      setScale(s => Math.max(s - 0.1, 0.2));
+      setScale(s => Math.max(s - 0.1, 0.1));
     } else {
       setScale(1);
       setPanOffset({ x: 0, y: 0 });
     }
   };
-  
-  const handleMouseDown = (e: React.MouseEvent) => {
-    // Prevent panning when interacting with other elements
-    if ((e.target as HTMLElement).closest('.window-frame') || (e.target as HTMLElement).closest('aside') || (e.target as HTMLElement).closest('.fixed')) {
-        return;
-    }
-    
-    setIsPanning(true);
-    setPanStart({ x: e.clientX - panOffset.x, y: e.clientY - panOffset.y });
-    (e.currentTarget as HTMLElement).style.cursor = 'grabbing';
+
+  const handlePanChange = (newOffset: { x: number; y: number }) => {
+    setPanOffset(newOffset);
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (isPanning) {
-      setPanOffset({
-        x: e.clientX - panStart.x,
-        y: e.clientY - panStart.y,
-      });
-    }
-  };
-
-  const handleMouseUp = (e: React.MouseEvent) => {
-    if (isPanning) {
-      setIsPanning(false);
-      (e.currentTarget as HTMLElement).style.cursor = 'default';
-    }
+  const handleScaleChange = (newScale: number) => {
+    setScale(newScale);
   };
   
   return (
     <ProtectedRoute>
-      <div 
-        className="relative h-dvh w-full overflow-hidden antialiased"
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-      >
+      <div className="relative h-dvh w-full overflow-hidden antialiased">
         <Sidebar onAddItem={handleAddItem} />
         <WhiteboardCanvas
           items={items}
@@ -221,6 +202,8 @@ export default function WhiteboardPage() {
           onDeleteItem={handleDeleteItem}
           onFocusItem={handleFocusItem}
           onToggleConnection={handleToggleConnection}
+          onPanChange={handlePanChange}
+          onScaleChange={handleScaleChange}
         />
         <div className="fixed top-4 left-4 z-50">
           <ThemeToggle />
@@ -236,16 +219,23 @@ export default function WhiteboardPage() {
           </Button>
         </div>
         <div className="fixed bottom-4 right-4 z-50 flex items-center gap-2">
-          <Button variant="outline" size="icon" onClick={() => handleZoom('out')} className="bg-card shadow-lg">
+          <Button variant="outline" size="icon" onClick={() => handleZoom('out')} className="bg-card shadow-lg" title="Zoom Out">
             <ZoomOut className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="icon" onClick={() => handleZoom('reset')} className="bg-card shadow-lg w-auto px-3">
+          <Button variant="outline" size="icon" onClick={() => handleZoom('reset')} className="bg-card shadow-lg w-auto px-3" title="Reset View">
             {Math.round(scale * 100)}%
           </Button>
-          <Button variant="outline" size="icon" onClick={() => handleZoom('in')} className="bg-card shadow-lg">
+          <Button variant="outline" size="icon" onClick={() => handleZoom('in')} className="bg-card shadow-lg" title="Zoom In">
             <ZoomIn className="h-4 w-4" />
           </Button>
         </div>
+        
+        <Minimap
+          items={items}
+          scale={scale}
+          panOffset={panOffset}
+          onPanChange={handlePanChange}
+        />
       </div>
     </ProtectedRoute>
   );
