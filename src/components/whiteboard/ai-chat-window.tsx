@@ -8,10 +8,10 @@ import { useToast } from '@/hooks/use-toast';
 import { Bot, MessageCircle, Send, ChevronDown } from 'lucide-react';
 import { Textarea } from '../ui/textarea';
 import type { WindowItem } from '@/lib/types';
-import { generateScriptFromContext } from '@/lib/ai-generate-script';
+
 
 type Message = {
-  role: 'user' | 'ai';
+  role: 'user' | 'ai' | 'assistant';
   content: string;
 };
 
@@ -92,82 +92,21 @@ export function AiChatWindow({ item, items }: AiChatWindowProps) {
     setIsLoading(true);
 
     try {
-        const connectedWindowIds = item.connections.map(conn => conn.to);
-        const connectedItems = items.filter(i => connectedWindowIds.includes(i.id));
-        
-        const context = connectedItems.map(i => {
-            let content = '';
-            
-            // Handle YouTube videos with comprehensive data
-            if (i.type === 'youtube' && i.scrapedData?.transcript) {
-                content = `📺 YouTube Video: "${i.scrapedData.title}"\n`;
-                content += `👤 Channel: ${i.scrapedData.author}`;
-                if (i.scrapedData.channelSubscribers) {
-                    content += ` (${(i.scrapedData.channelSubscribers / 1000).toFixed(1)}K subscribers)`;
-                }
-                content += `\n⏱️ Duration: ${i.scrapedData.duration}\n`;
-                if (i.scrapedData.viewCount) {
-                    content += `👀 Views: ${(i.scrapedData.viewCount / 1000).toFixed(1)}K`;
-                }
-                if (i.scrapedData.likes) {
-                    content += ` | 👍 Likes: ${(i.scrapedData.likes / 1000).toFixed(1)}K`;
-                }
-                if (i.scrapedData.commentsCount) {
-                    content += ` | 💬 Comments: ${i.scrapedData.commentsCount}`;
-                }
-                content += `\n`;
-                if (i.scrapedData.uploadDate) {
-                    content += `📅 Published: ${i.scrapedData.uploadDate}\n`;
-                }
-                if (i.scrapedData.description && i.scrapedData.description !== i.scrapedData.transcript) {
-                    content += `📋 Description: ${i.scrapedData.description.substring(0, 200)}...\n`;
-                }
-                content += `📝 Full Transcript: ${i.scrapedData.transcript}`;
-            }
-            
-            // Handle YouTube playlists with comprehensive data
-            if (i.type === 'youtube-playlist' && i.scrapedData?.transcript) {
-                content = `📋 YouTube Playlist: "${i.scrapedData.title}"\n`;
-                content += `👤 Creator: ${i.scrapedData.author}\n`;
-                if (i.scrapedData.videos && Array.isArray(i.scrapedData.videos)) {
-                    content += `🎬 Total Videos: ${i.scrapedData.videos.length}\n`;
-                    content += `⏱️ Total Duration: ${i.scrapedData.totalDuration || 'N/A'}\n`;
-                }
-                if (i.scrapedData.viewCount) {
-                    content += `👀 Total Views: ${(i.scrapedData.viewCount / 1000).toFixed(1)}K\n`;
-                }
-                if (i.scrapedData.description) {
-                    content += `📋 Description: ${i.scrapedData.description.substring(0, 200)}...\n`;
-                }
-                content += `📝 Combined Content: ${i.scrapedData.transcript}`;
-            }
-            
-            // Handle documents
-            else if (i.type === 'doc') {
-                try {
-                    const parsedDocs = JSON.parse(i.content);
-                    if (Array.isArray(parsedDocs)) {
-                        content = parsedDocs.map((doc: {name: string, content: string}) => `Document: ${doc.name}\n${doc.content}`).join('\n\n');
-                    }
-                } catch {
-                    content = i.content;
-                }
-            } 
-            // Handle other content types
-            else {
-               content = i.content;
-            }
-            
-            return `## ${i.title} (${i.type})\n${content}`;
-        }).join('\n\n---\n\n');
-        
-        const result = await generateScriptFromContext({
-            prompt: currentInput,
-            context: context
-        });
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ messages: [...messages, newUserMessage] }),
+      });
 
-        const aiResponse: Message = { role: 'ai', content: result.script };
-        setMessages((prev) => [...prev, aiResponse]);
+      if (!response.ok) {
+        throw new Error('Failed to get a response from the AI.');
+      }
+
+      const data = await response.json();
+      const aiResponse: Message = { role: 'assistant', content: data.response };
+      setMessages((prev) => [...prev, aiResponse]);
 
     } catch (error) {
         console.error('Error generating script:', error);
@@ -176,7 +115,7 @@ export function AiChatWindow({ item, items }: AiChatWindowProps) {
             title: 'An error occurred',
             description: 'Failed to get a response from the AI. Please try again.',
         });
-        const aiErrorResponse: Message = { role: 'ai', content: "Sorry, I couldn't process that request." };
+        const aiErrorResponse: Message = { role: 'assistant', content: "Sorry, I couldn't process that request." };
         setMessages((prev) => [...prev, aiErrorResponse]);
     } finally {
         setIsLoading(false);
@@ -200,7 +139,7 @@ export function AiChatWindow({ item, items }: AiChatWindowProps) {
                   message.role === 'user' ? 'justify-end' : 'justify-start'
                 }`}
               >
-                {message.role === 'ai' && <Bot className="h-6 w-6 text-primary flex-shrink-0" />}
+                {message.role === 'assistant' && <Bot className="h-6 w-6 text-primary flex-shrink-0" />}
                 <div
                   className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${
                     message.role === 'user'

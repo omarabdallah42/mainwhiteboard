@@ -57,7 +57,7 @@ export function Sidebar({ onAddItem }: SidebarProps) {
   };
   
   const handleAddPlaylist = (link: string) => {
-    onAddItem('youtube-playlist', link);
+    onAddItem('youtube', link);
   }
 
   const handleAddTiktokProfile = (link: string) => {
@@ -168,7 +168,7 @@ export function Sidebar({ onAddItem }: SidebarProps) {
             {toolButtons.map(tool => (
                  <Tooltip key={tool.tooltip}>
                     <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" className="rounded-full" onClick={() => tool.action ? tool.action() : onAddItem(tool.type as WindowType)}>
+                        <Button variant="ghost" size="icon" className="rounded-full" onClick={() => tool.action ? tool.action() : onAddItem(tool.type as WindowType, tool.content)}>
                             <tool.icon className="h-5 w-5" />
                         </Button>
                     </TooltipTrigger>

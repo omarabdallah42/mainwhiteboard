@@ -10,8 +10,7 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 // Dynamically import pdfjs-dist to avoid SSR issues
-// @ts-ignore - pdfjs-dist types are optional for this dynamic import
-const pdfjsPromise = import('pdfjs-dist/build/pdf').catch(() => null);
+const pdfjsPromise = import('pdfjs-dist/build/pdf');
 import mammoth from 'mammoth';
 
 pdfjsPromise.then(pdfjs => {
@@ -66,7 +65,7 @@ export function DocumentDropzone({ item, onUpdate }: DocumentDropzoneProps) {
           for (let i = 1; i <= pdf.numPages; i++) {
             const page = await pdf.getPage(i);
             const text = await page.getTextContent();
-            content += text.items.map((s: any) => s.str).join(' ');
+            content += text.items.map(s => (s as any).str).join(' ');
           }
           textContent = content;
         } else if (file.type.includes('wordprocessingml')) { // .docx

@@ -36,7 +36,7 @@ export function AddChannelDialog({ isOpen, onOpenChange, onAddChannel }: AddChan
         <DialogHeader>
           <DialogTitle>Add YouTube Channel</DialogTitle>
           <DialogDescription>
-            📺 Paste any YouTube channel URL. Works with @username, /channel/, or /c/ formats.
+            Enter the URL of the YouTube channel you want to add to the whiteboard.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -49,7 +49,7 @@ export function AddChannelDialog({ isOpen, onOpenChange, onAddChannel }: AddChan
               value={link}
               onChange={(e) => setLink(e.target.value)}
               className="col-span-3"
-              placeholder="📺 Paste channel URL: https://www.youtube.com/@channelname"
+              placeholder="https://www.youtube.com/channel/..."
             />
           </div>
         </div>

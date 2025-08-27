@@ -27,6 +27,13 @@ class AIClient {
   private initialize() {
     try {
       const apiKey = process.env.GOOGLE_GENAI_API_KEY;
+      console.log('Environment variables check:');
+      console.log('- NODE_ENV:', process.env.NODE_ENV);
+      console.log('- All GOOGLE keys:', Object.keys(process.env).filter(k => k.includes('GOOGLE')));
+      console.log('- API Key check:', apiKey ? 'Found' : 'Not found');
+      console.log('- API Key length:', apiKey?.length || 0);
+      console.log('- API Key preview:', apiKey ? `${apiKey.substring(0, 10)}...` : 'none');
+      
       if (!apiKey) {
         console.error('Google AI API key not found');
         return;

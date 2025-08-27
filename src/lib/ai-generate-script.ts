@@ -44,13 +44,7 @@ export async function generateScriptFromContext(
 
 The user has provided a prompt and may have provided some context from their whiteboard. Use this information to generate a helpful response.
 
-If context is provided, use it as the primary source of information. Pay special attention to YouTube video data including:
-- Full transcripts for detailed content analysis
-- Engagement metrics (views, likes, comments) for performance insights  
-- Channel information for creator context
-- Video descriptions and metadata for comprehensive understanding
-
-Analyze all provided video data holistically to give the most valuable insights and recommendations.
+If context is provided, use it as the primary source of information.
 
 User Prompt: ${input.prompt}`;
 

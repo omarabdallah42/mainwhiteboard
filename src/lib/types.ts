@@ -1,4 +1,4 @@
-export type WindowType = 'youtube' | 'youtube-playlist' | 'doc' | 'url' | 'social' | 'ai' | 'image' | 'tiktok' | 'instagram';
+export type WindowType = 'youtube' | 'doc' | 'url' | 'social' | 'ai' | 'image' | 'tiktok' | 'instagram';
 
 export type ConnectionType = 
   | 'flow' 
@@ -52,37 +52,6 @@ export type WindowItem = {
   isSelected?: boolean;
   isLocked?: boolean;
   groupId?: string;
-  // Content scraping data
-  scrapingStatus?: 'idle' | 'loading' | 'success' | 'error';
-  scrapedData?: {
-    title?: string;
-    author?: string;
-    duration?: string;
-    transcript?: string;
-    thumbnails?: string[];
-    videoId?: string;
-    scrapedAt?: string;
-    // Enhanced data from streamers/youtube-scraper
-    viewCount?: number;
-    likes?: number;
-    commentsCount?: number;
-    channelUrl?: string;
-    channelSubscribers?: number;
-    uploadDate?: string;
-    description?: string;
-    tags?: string[];
-    // Playlist-specific data
-    videos?: Array<{
-      id: string;
-      title: string;
-      thumbnail: string;
-      duration: string;
-      views: number;
-      url: string;
-    }>;
-    totalDuration?: string;
-    videoCount?: number;
-  };
 };
 
 export type SelectionBox = {
