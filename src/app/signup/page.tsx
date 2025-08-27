@@ -83,7 +83,7 @@ export default function SignupPage() {
             </div>
             <CardTitle className="text-2xl font-bold text-center">Create account</CardTitle>
             <CardDescription className="text-center">
-              Sign up for your Meedro WhiteBoard account
+              Sign up for your Donezo WhiteBoard account
             </CardDescription>
           </CardHeader>
           <CardContent>

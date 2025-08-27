@@ -63,7 +63,7 @@ export default function LoginPage() {
             </div>
             <CardTitle className="text-2xl font-bold text-center">Welcome back</CardTitle>
             <CardDescription className="text-center">
-              Sign in to your Meedro WhiteBoard account
+              Sign in to your Donezo WhiteBoard account
             </CardDescription>
           </CardHeader>
           <CardContent>
