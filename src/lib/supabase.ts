@@ -1,9 +1,22 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = 'https://zcbspeakxabfrjcavuhi.supabase.co';
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpjYnNwZWFreGFiZnJqY2F2dWhpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ1NDY0MzUsImV4cCI6MjA3MDEyMjQzNX0.KFEHEkP8ibkbMZbkWYY_lHD5f_NiL9GPS-ohiOqkTGQ';
+if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+  console.error('Missing NEXT_PUBLIC_SUPABASE_URL');
+}
+if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+  console.error('Missing NEXT_PUBLIC_SUPABASE_ANON_KEY');
+}
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://bgvyusksldllhwmbbuek.supabase.co';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJndnl1c2tzbGRsbGh3bWJidWVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4NjMwOTcsImV4cCI6MjA3MTQzOTA5N30.uc2gma8GVXUOnp_p0SXC-Llpk29dhDKR8_5oz7AHfh4';
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true
+  }
+});
 
 // Types for our database
 export type User = {
