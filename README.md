@@ -1,4 +1,4 @@
-# Meedro AI - WhiteBoard
+# donezo AI - WhiteBoard
 
 ## Overview
 
