@@ -1,4 +1,4 @@
-# **App Name**: Meedro WhiteBoard
+# **App Name**: Donezo WhiteBoard
 
 ## Core Features:
 
