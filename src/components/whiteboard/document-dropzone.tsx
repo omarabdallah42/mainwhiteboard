@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import type { WindowItem } from '@/lib/types';
+import type { WindowItem } from '@/lib/types'; 
 import { cn } from '@/lib/utils';
 import { UploadCloud, FileText, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
