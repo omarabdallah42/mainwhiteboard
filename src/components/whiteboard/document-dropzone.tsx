@@ -1,6 +1,3 @@
-
-'use client';
-
 import * as React from 'react';
 import type { WindowItem } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -8,14 +5,11 @@ import { UploadCloud, FileText, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-
-// Dynamically import pdfjs-dist to avoid SSR issues
-const pdfjsPromise = import('pdfjs-dist/build/pdf');
 import mammoth from 'mammoth';
-
-pdfjsPromise.then(pdfjs => {
-    pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
-});
+declare module 'pdfjs-dist/build/pdf' {
+  const pdfjs: any;
+  export = pdfjs;
+}
 
 interface DocumentDropzoneProps {
   item: WindowItem;
@@ -35,7 +29,6 @@ export function DocumentDropzone({ item, onUpdate }: DocumentDropzoneProps) {
   const { toast } = useToast();
 
   React.useEffect(() => {
-    // When the component loads, try to parse existing content
     if (item.content) {
       try {
         const docs = JSON.parse(item.content);
@@ -43,10 +36,10 @@ export function DocumentDropzone({ item, onUpdate }: DocumentDropzoneProps) {
           setParsedDocuments(docs);
         }
       } catch (e) {
-        // Not JSON, so it might be a plain text from the old version
         setParsedDocuments([{ name: 'document.txt', content: item.content }]);
       }
     }
+    // eslint-disable-next-line
   }, []); // Only run once on mount
 
   const handleFileParse = async (files: FileList | null) => {
@@ -59,13 +52,18 @@ export function DocumentDropzone({ item, onUpdate }: DocumentDropzoneProps) {
       try {
         let textContent = '';
         if (file.type === 'application/pdf') {
-          const pdfjs = await pdfjsPromise;
-          const pdf = await pdfjs.getDocument(await file.arrayBuffer()).promise;
+          // Dynamic import with types ignored
+          // @ts-ignore
+          const pdfjsLib = await import('pdfjs-dist/build/pdf');
+          // @ts-ignore
+          pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+          const pdf = await pdfjsLib.getDocument(await file.arrayBuffer()).promise;
           let content = '';
           for (let i = 1; i <= pdf.numPages; i++) {
             const page = await pdf.getPage(i);
             const text = await page.getTextContent();
-            content += text.items.map(s => (s as any).str).join(' ');
+            // حدد نوع العنصر s بدلاً من any
+            content += (text.items as { str: string }[]).map((s) => s.str).join(' ');
           }
           textContent = content;
         } else if (file.type.includes('wordprocessingml')) { // .docx
@@ -80,7 +78,7 @@ export function DocumentDropzone({ item, onUpdate }: DocumentDropzoneProps) {
             title: 'Unsupported File Type',
             description: `File type for ${file.name} is not supported.`,
           });
-          continue; // Skip unsupported files
+          continue;
         }
         newDocs.push({ name: file.name, content: textContent });
       } catch (error) {
@@ -92,10 +90,14 @@ export function DocumentDropzone({ item, onUpdate }: DocumentDropzoneProps) {
         });
       }
     }
-    
+
     const updatedDocs = [...parsedDocuments, ...newDocs];
     setParsedDocuments(updatedDocs);
-    onUpdate({ ...item, content: JSON.stringify(updatedDocs), title: updatedDocs.length > 1 ? `${updatedDocs.length} Documents` : updatedDocs[0]?.name || 'Document Upload' });
+    onUpdate({
+      ...item,
+      content: JSON.stringify(updatedDocs),
+      title: updatedDocs.length > 1 ? `${updatedDocs.length} Documents` : updatedDocs[0]?.name || 'Document Upload'
+    });
     setIsLoading(false);
   };
 
@@ -122,16 +124,16 @@ export function DocumentDropzone({ item, onUpdate }: DocumentDropzoneProps) {
     setIsDragging(false);
     handleFileParse(e.dataTransfer.files);
   };
-  
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-      handleFileParse(e.target.files);
-  }
+    handleFileParse(e.target.files);
+  };
 
   const handleClearDocuments = () => {
     setParsedDocuments([]);
     onUpdate({ ...item, content: '', title: 'Document Upload' });
   };
-  
+
   if (parsedDocuments.length > 0) {
     return (
       <div className="flex h-full flex-col">
@@ -149,10 +151,10 @@ export function DocumentDropzone({ item, onUpdate }: DocumentDropzoneProps) {
           </div>
         </ScrollArea>
         <div className="border-t p-2 flex items-center justify-between">
-           <Button variant="outline" size="sm" onClick={handleClearDocuments}>
+          <Button variant="outline" size="sm" onClick={handleClearDocuments}>
             Clear Documents
           </Button>
-           <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+          <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
             Add More...
           </Button>
           <input
@@ -199,7 +201,7 @@ export function DocumentDropzone({ item, onUpdate }: DocumentDropzoneProps) {
           <p className="text-xs text-muted-foreground">
             Supports: .txt, .pdf, .docx
           </p>
-           <Button 
+          <Button
             variant="outline"
             size="sm"
             className="mt-4"
